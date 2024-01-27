@@ -1,36 +1,58 @@
 // No início do arquivo Dashboard.js
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './AuthContext'
-import { collection, getDocs, 
+import { collection, getDocs,
   addDoc, onSnapshot, 
   serverTimestamp, query, orderBy,
-  updateDoc, doc, arrayUnion   } from 'firebase/firestore';
+  updateDoc, doc, getDoc, arrayUnion, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import { Card, Row, Col, Container, Button, Modal, Form, Accordion } from 'react-bootstrap';
+import { Container, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaPencilAlt, FaPlus } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
+import { ModalPaciente } from './components/modais/ModalPaciente';
+import { ModalEvolucao } from './components/modais/ModalEvolucao';
+import { ModalProducao } from './components/modais/ModalProducao';
+import { ListaPacientes } from './components/ListaPacientes';
 
 const Dashboard = () => {
   const [pacientes, setPacientes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEvolucaoModal, setShowEvolucaoModal] = useState(false);
+  const [showProducaoModal, setShowProducaoModal] = useState(false);
   const [hospitais, setHospitais] = useState([]);
+  const [acessos, setAcessos] = useState([]);
+  const [condutas, setCondutas] = useState([]);
+  const [producoes, setProducoes] = useState([]);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [pacienteAtual, setPacienteAtual] = useState(null);
   const [mostrarAlta, setMostrarAlta] = useState(false);
   const [textoEvolucao, setTextoEvolucao] = useState("");
   const [evolucoes, setEvolucoes] = useState([]);
   const { currentUser } = useContext(AuthContext);
+  const [producaoAtual, setProducaoAtual] = useState(null);
+  const [indiceProducaoAtual, setIndiceProducaoAtual] = useState(null);
+  const [modoEdicaoProducao, setModoEdicaoProducao] = useState(false);
+  const [nomeAcessoSelecionado, setNomeAcessoSelecionado] = useState('');
+  const [nomeCondutaSelecionada, setNomeCondutaSelecionada] = useState('');
+  
 
 
   useEffect(() => {
-    const fetchHospitais = async () => {
+    const fetchData = async () => {
       const querySnapshot = await getDocs(collection(db, "hospitais"));
       const hospitaisData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      
+      const acessosSnap = await getDocs(collection(db, "acessos"));
+      const condutasSnap = await getDocs(collection(db, "condutas"));
+      const producoesSnap = await getDocs(collection(db, "producoes"));
+      
       setHospitais(hospitaisData);
+      setAcessos(acessosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setCondutas(condutasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setProducoes(producoesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
   
-    fetchHospitais();
+    fetchData();
   }, []);
 
   
@@ -70,6 +92,15 @@ const Dashboard = () => {
     }, {});
   };
   
+
+  useEffect(() => {
+    if (modoEdicaoProducao && producaoAtual) {
+      setNomeAcessoSelecionado(producaoAtual.acesso.nome);
+      setNomeCondutaSelecionada(producaoAtual.conduta.nome);
+      // Repita para outros campos
+    }
+  }, [modoEdicaoProducao, producaoAtual]);
+
   //const pacientesPorHospital = agruparPorHospital(pacientes);  
 
   const handleSubmit = async (event) => {
@@ -126,6 +157,60 @@ const adicionarEvolucao = async () => {
   handleCloseEvolucaoModal()
 };
 
+const handleSubmitProducao = async (event) => {
+  event.preventDefault();
+  const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter } = event.target.elements;
+  const dataAcessoTimestamp = dataAcesso.value ? Timestamp.fromDate(new Date(dataAcesso.value)) : null;
+
+  const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
+
+  if (modoEdicaoProducao && indiceProducaoAtual != null) {
+    // Atualizar uma produção existente
+    const producaoAtualizada = {
+      acesso: { nome: nomeAcesso.value, data: dataAcessoTimestamp },
+      conduta: { nome: nomeConduta.value },
+      producao: { nome: nomeProducao.value },
+      usou_cateter: usouCateter.checked,
+      user: currentUser.email // Pode manter o usuário original ou atualizar
+    };
+
+    const pacienteDoc = await getDoc(pacienteRef);
+    const producoes = pacienteDoc.data().producao;
+
+    producoes[indiceProducaoAtual] = producaoAtualizada;
+
+    await updateDoc(pacienteRef, { producao: producoes });
+  } else {
+  const novaProducao = {
+    acesso: { nome: nomeAcesso.value, data: dataAcessoTimestamp },
+    conduta: { nome: nomeConduta.value },
+    producao: { nome: nomeProducao.value },
+    usou_cateter: usouCateter.checked,
+    user: currentUser.email, // Usando o e-mail do usuário logado
+    criadaEm: Timestamp.now() // Timestamp do momento da criação
+  };
+
+  // Adicionar novaProducao ao paciente no Firebase
+  const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
+  await updateDoc(pacienteRef, {
+    producao: arrayUnion(novaProducao)
+  });
+}
+
+  handleCloseProducaoModal();
+};
+
+const editarProducao = (producao, index) => {
+  // Define a produção atual para edição
+  setProducaoAtual(producao);
+  setModoEdicaoProducao(true);
+  setIndiceProducaoAtual(index);
+  setNomeCondutaSelecionada(producao.conduta.nome);
+  // Abre um formulário de edição ou modifica o estado para mostrar o formulário de edição
+  // ...
+};
+
+// ABRIR E FECHAR MODAL
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
@@ -152,6 +237,16 @@ const adicionarEvolucao = async () => {
     // Não é necessário buscar as evoluções separadamente
     setEvolucoes(paciente.evolucao || []);
     //setPacienteAtual(paciente)
+  };
+
+  const abrirModalProducao = (paciente) => {
+    setPacienteAtual(paciente);
+    setShowProducaoModal(true);
+  };
+  
+  const handleCloseProducaoModal = () => {
+    setShowProducaoModal(false);
+    setModoEdicaoProducao(false);
   };
   
 
@@ -183,126 +278,38 @@ const adicionarEvolucao = async () => {
           }}
         />
       </div>
-      <Modal show={showModal} onHide={handleCloseModal} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Novo Paciente</Modal.Title>
-        </Modal.Header>
-        <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto' }}>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formNome">
-              <Form.Label>Nome</Form.Label>
-              <Form.Control type="text" name="nome" defaultValue={modoEdicao ? pacienteAtual.nome : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Setor</Form.Label>
-            <Form.Control type="text" name="setor" defaultValue={modoEdicao ? pacienteAtual.setor : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Idade</Form.Label>
-            <Form.Control type="number" name="idade" defaultValue={modoEdicao ? pacienteAtual.idade : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Registro</Form.Label>
-            <Form.Control type="text" name="registro" defaultValue={modoEdicao ? pacienteAtual.registro : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Diagnóstico</Form.Label>
-            <Form.Control type="text" name="diagnostico" defaultValue={modoEdicao ? pacienteAtual.diagnostico : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Check type="checkbox" label="Alta" name="alta" defaultChecked={modoEdicao ? pacienteAtual.alta : ''} />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Convênio</Form.Label>
-            <Form.Control type="text" name="convenio" defaultValue={modoEdicao ? pacienteAtual.convenio : ''} required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-            <Form.Label>Hospital</Form.Label>
-            <Form.Select name="hospital" defaultValue={modoEdicao ? pacienteAtual.hospital : ''} required>
-              <option value="">Selecione um Hospital</option>
-              {hospitais.map(hospital => (
-                <option key={hospital.id} value={hospital.nome}>{hospital.nome}</option>
-              ))}
-            </Form.Select>
-            </Form.Group>
-            {/* Outros campos do formulário */}
-            <Button variant="primary" type="submit">Salvar</Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
-      <Modal show={showEvolucaoModal} onHide={handleCloseEvolucaoModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Adicionar Evolução</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-        <div>
-          <h5>Evoluções:</h5>
-          <div className="border p-3 rounded mt-2 mb-4 overflow-auto" style={{ maxHeight: '200px' }}>
-            {evolucoes.length > 1 ? evolucoes.slice(0, -1).map(e => e.texto).join('. ') + '. ' : ''}
-            <span className={evolucoes.length > 0 ? "text-danger" : ""}>
-              {evolucoes.length > 0 ? evolucoes[evolucoes.length - 1].texto : ''}
-            </span>
-          </div>
-        </div>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Evolução</Form.Label>
-              <div style={{ display: 'flex' }}>
-                <Form.Control type="text" placeholder="Digite a evolução" onChange={(e) => setTextoEvolucao(e.target.value)} />
-                <Button variant="success" style={{ marginLeft: '10px' }} onClick={adicionarEvolucao}>
-                  + Evolução
-                </Button>
-              </div>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-      </Modal>
-      <Accordion>
-      {Object.entries(pacientes).map(([hospitalNome, pacientesDoHospital], index) => (
-        <Accordion.Item eventKey={hospitalNome} key={hospitalNome}>
-          <Accordion.Header>{hospitalNome}</Accordion.Header>
-          <Accordion.Body>        
-            
-                  <Row xs={1} md={3} className="g-4">
-                    {pacientesDoHospital.map(paciente => (
-                      <Col key={paciente.id}>
-                        <Card>
-                          <Card.Body>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Card.Title>{paciente.nome}</Card.Title>
-                            <Button variant="outline-warning" 
-                            size="sm"
-                            onClick={() => abrirModalEdicao(paciente)}>
-                              <FaPencilAlt /> Editar
-                              </Button>
-                          </div>
-                            <Card.Text>
-                              <strong>Setor:</strong> {paciente.setor}<br />
-                              <strong>Idade:</strong> {paciente.idade}<br />
-                              <strong>Registro:</strong> {paciente.registro}<br />
-                              <strong>Diagnóstico:</strong> {paciente.diagnostico?.join(", ")}<br />
-                              <strong>Evolução:</strong> {paciente.evolucao && paciente.evolucao.length > 0
-                                        ? paciente.evolucao[paciente.evolucao.length - 1].texto.substring(0, 15) + '...'
-                                        : 'Sem evoluções'}<br />
-                              <strong>Alta:</strong> {paciente.alta ? "Sim" : "Não"}<br />
-                              <strong>Convênio:</strong> {paciente.convenio}<br />
-                              <strong>Hospital:</strong> {paciente.hospital}
-                              
-                          </Card.Text>
-                          <div style={{ textAlign: 'right' }}>
-                          <Button variant="primary" size="sm" onClick={() => abrirModalEvolucao(paciente)}>Evoluções</Button>
-                        </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                
-          </Accordion.Body>
-      </Accordion.Item>
-      ))}
-      
-    </Accordion>
+      <ModalPaciente 
+          showModal={showModal} 
+          handleCloseModal={handleCloseModal} 
+          handleSubmit={handleSubmit} 
+          modoEdicao={modoEdicao} 
+          pacienteAtual={pacienteAtual} 
+          hospitais={hospitais}/>
+      <ModalEvolucao 
+          showEvolucaoModal={showEvolucaoModal}
+          handleCloseEvolucaoModal={handleCloseEvolucaoModal}
+          evolucoes={evolucoes}
+          adicionarEvolucao={adicionarEvolucao}
+          setTextoEvolucao={setTextoEvolucao}/>
+      <ModalProducao 
+          showProducaoModal={showProducaoModal} 
+          handleCloseProducaoModal={handleCloseProducaoModal} 
+          handleSubmitProducao={handleSubmitProducao}
+          editarProducao={editarProducao}
+          pacienteAtual={pacienteAtual}
+          acessos={acessos} 
+          condutas={condutas} 
+          producoes={producoes}
+          currentUser={currentUser}
+          modoEdicaoProducao={modoEdicaoProducao}
+          producaoAtual={producaoAtual}
+          setNomeCondutaSelecionada={setNomeCondutaSelecionada}
+          nomeCondutaSelecionada={nomeCondutaSelecionada}/>
+      <ListaPacientes 
+          pacientes={pacientes} 
+          abrirModalEdicao={abrirModalEdicao} 
+          abrirModalProducao={abrirModalProducao}
+          abrirModalEvolucao={abrirModalEvolucao}/>
     {/*
       <Row xs={1} md={3} className="g-4">
         {pacientes.map(paciente => (
