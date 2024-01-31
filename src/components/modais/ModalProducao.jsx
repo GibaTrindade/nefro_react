@@ -16,8 +16,8 @@ export const ModalProducao = ({
     nomeCondutaSelecionada
 }) => {
 
-    const formatarData = (timestamp) => {
-        const data = timestamp.toDate();
+    const formatarData = (data) => {
+        //const data = timestamp.toDate();
         return data.toISOString().split('T')[0]; // Formato yyyy-MM-dd
       };
 
@@ -43,7 +43,10 @@ export const ModalProducao = ({
               </Form.Select>
               <Form.Label>Data do Acesso</Form.Label>
               <></>
-              <Form.Control type="date" name="dataAcesso" defaultValue={producaoAtual?.acesso?.data ? formatarData(producaoAtual.acesso.data) : ''} />
+              <Form.Control type="date" 
+                            name="dataAcesso" 
+                            defaultValue={producaoAtual?.acesso?.data ? producaoAtual.acesso.data : ''} 
+                            />
             </Form.Group>
 
             {/* Campo para Conduta */}
@@ -102,7 +105,7 @@ export const ModalProducao = ({
                 ))}
               </Form.Select>
               <Form.Label>Data do Acesso</Form.Label>
-              <Form.Control type="date" name="dataAcesso" />
+              <Form.Control type="date" name="dataAcesso"/>
             </Form.Group>
 
             {/* Campo para Conduta */}
@@ -144,7 +147,7 @@ export const ModalProducao = ({
                 <div key={index} className="border p-3 mb-3 rounded">
                   <p className="text-muted">Usuário: {item.user}</p>
                   {item.acesso && (
-                    <p><strong>Acesso:</strong> {item.acesso.nome} {item.acesso.data ? `em ${item.acesso.data.toDate().toLocaleDateString('pt-BR')}` : ''}</p>
+                    <p><strong>Acesso:</strong> {item.acesso.nome} {item.acesso.data ? `em ${item.acesso.data}` : ''}</p>
                   )}
                   {item.conduta && (
                     <p><strong>Conduta:</strong> {item.conduta.nome}</p>

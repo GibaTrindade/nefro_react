@@ -160,14 +160,15 @@ const adicionarEvolucao = async () => {
 const handleSubmitProducao = async (event) => {
   event.preventDefault();
   const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter } = event.target.elements;
-  const dataAcessoTimestamp = dataAcesso.value ? Timestamp.fromDate(new Date(dataAcesso.value)) : null;
-
+  console.log(dataAcesso.value)
+  //const dataAcessoTimestamp = dataAcesso.value ? Timestamp.fromDate(new Date(dataAcesso.value)) : null;
+  //console.log(dataAcessoTimestamp)
   const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
 
   if (modoEdicaoProducao && indiceProducaoAtual != null) {
     // Atualizar uma produção existente
     const producaoAtualizada = {
-      acesso: { nome: nomeAcesso.value, data: dataAcessoTimestamp },
+      acesso: { nome: nomeAcesso.value, data: dataAcesso.value },
       conduta: { nome: nomeConduta.value },
       producao: { nome: nomeProducao.value },
       usou_cateter: usouCateter.checked,
@@ -182,7 +183,7 @@ const handleSubmitProducao = async (event) => {
     await updateDoc(pacienteRef, { producao: producoes });
   } else {
   const novaProducao = {
-    acesso: { nome: nomeAcesso.value, data: dataAcessoTimestamp },
+    acesso: { nome: nomeAcesso.value, data: dataAcesso.value },
     conduta: { nome: nomeConduta.value },
     producao: { nome: nomeProducao.value },
     usou_cateter: usouCateter.checked,

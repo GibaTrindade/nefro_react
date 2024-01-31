@@ -24,7 +24,7 @@ export const ListaPacientes = ({
                           <Card>
                             <Card.Body>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Card.Title>{paciente.nome}</Card.Title>
+                              <Card.Title>{paciente.nome.length > 20 ? paciente.nome.slice(0, 20) + '...' : paciente.nome}</Card.Title>
                               <Button variant="outline-warning" 
                               size="sm"
                               onClick={() => abrirModalEdicao(paciente)}>
@@ -44,9 +44,9 @@ export const ListaPacientes = ({
                                 <strong>Hospital:</strong> {paciente.hospital}
                                 
                             </Card.Text>
-                            <div style={{ textAlign: 'right' }}>
-                            <Button variant="primary" size="sm" onClick={() => abrirModalProducao(paciente)}>Ver Produções</Button>
-                            <Button variant="primary" size="sm" onClick={() => abrirModalEvolucao(paciente)}>Evoluções</Button>
+                            <div className="d-flex justify-content-between" >
+                            <Button variant="outline-primary" size="sm" onClick={() => abrirModalProducao(paciente)}>Ver Produções</Button>
+                            <Button variant="outline-primary" size="sm" onClick={() => abrirModalEvolucao(paciente)}>Evoluções</Button>
                           </div>
                             </Card.Body>
                           </Card>
