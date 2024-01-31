@@ -145,7 +145,8 @@ const Dashboard = () => {
 
 
 // Função para adicionar uma nova evolução
-const adicionarEvolucao = async () => {
+const adicionarEvolucao = async (event) => {
+  event.preventDefault();
   const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
   const newEvolucao = {
     texto: textoEvolucao,

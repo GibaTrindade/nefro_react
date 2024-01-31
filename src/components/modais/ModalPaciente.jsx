@@ -28,7 +28,8 @@ export const ModalPaciente = ({showModal, handleCloseModal, handleSubmit, modoEd
             </Form.Group>
             <Form.Group className="mb-3">
             <Form.Label>Diagnóstico</Form.Label>
-            <Form.Control type="text" name="diagnostico" defaultValue={modoEdicao ? pacienteAtual.diagnostico : ''} required />
+            <Form.Control type="text" name="diagnostico" defaultValue={modoEdicao ? pacienteAtual.diagnostico : ''} 
+                          placeholder='HAS, DM, IRA' required />
             </Form.Group>
             <Form.Group className="mb-3">
             <Form.Check type="checkbox" label="Alta" name="alta" defaultChecked={modoEdicao ? pacienteAtual.alta : ''} />

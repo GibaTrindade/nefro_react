@@ -24,12 +24,15 @@ export const ModalEvolucao = ({
                 </span>
             </div>
             </div>
-            <Form>
+            <Form onSubmit={adicionarEvolucao}>
                 <Form.Group className="mb-3">
                 <Form.Label>Evolução</Form.Label>
                 <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" placeholder="Digite a evolução" onChange={(e) => setTextoEvolucao(e.target.value)} />
-                    <Button variant="success" style={{ marginLeft: '10px' }} onClick={adicionarEvolucao}>
+                    <Form.Control type="text" 
+                                    placeholder="Digite a evolução" 
+                                    onChange={(e) => setTextoEvolucao(e.target.value)} 
+                                    required />
+                    <Button variant="success" type='submit' style={{ marginLeft: '10px' }} >
                     + Evolução
                     </Button>
                 </div>
