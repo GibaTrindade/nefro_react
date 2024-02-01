@@ -1,21 +1,21 @@
 // No início do arquivo Dashboard.js
 import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from './AuthContext'
+import { AuthContext } from '../AuthContext'
 import { collection, getDocs,
-  addDoc, onSnapshot, 
-  serverTimestamp, query, orderBy,
-  updateDoc, doc, getDoc, arrayUnion, Timestamp } from 'firebase/firestore';
-import { db } from './firebase';
+  addDoc, 
+  serverTimestamp,
+  updateDoc, doc, getDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '../firebase';
 import { Container, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaPlus } from 'react-icons/fa';
-import { ModalPaciente } from './components/modais/ModalPaciente';
-import { ModalEvolucao } from './components/modais/ModalEvolucao';
-import { ModalProducao } from './components/modais/ModalProducao';
-import { ListaPacientes } from './components/ListaPacientes';
+import { ModalPaciente } from './modais/ModalPaciente';
+import { ModalEvolucao } from './modais/ModalEvolucao';
+import { ModalProducao } from './modais/ModalProducao';
+import { ListaPacientes } from './ListaPacientes';
 
-const Dashboard = () => {
-  const [pacientes, setPacientes] = useState([]);
+const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
+  //const [pacientes, setPacientes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEvolucaoModal, setShowEvolucaoModal] = useState(false);
   const [showProducaoModal, setShowProducaoModal] = useState(false);
@@ -25,7 +25,7 @@ const Dashboard = () => {
   const [producoes, setProducoes] = useState([]);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [pacienteAtual, setPacienteAtual] = useState(null);
-  const [mostrarAlta, setMostrarAlta] = useState(false);
+  //const [mostrarAlta, setMostrarAlta] = useState(false);
   const [textoEvolucao, setTextoEvolucao] = useState("");
   const [evolucoes, setEvolucoes] = useState([]);
   const { currentUser } = useContext(AuthContext);
@@ -57,40 +57,9 @@ const Dashboard = () => {
 
   
 
-  useEffect(() => {
-    const filtrarEAgruparPacientes = (pacientes, mostrarAlta) => {
-      const pacientesFiltrados = pacientes.filter(p => p.alta === mostrarAlta);
-      return agruparPorHospital(pacientesFiltrados);
-    };
-    let queryConstruida = collection(db, "pacientes");
-    
-    // if (mostrarAlta) {
-    //   queryConstruida = query(queryConstruida, 
-    //                             where("alta", "==", true), 
-    //                             orderBy("hospital"), // Primeiro ordena por hospital
-    //                             orderBy("nome")   );
-    // } else {
-      queryConstruida = query(queryConstruida, 
-                              orderBy("hospital"), // Primeiro ordena por hospital
-                              orderBy("nome")   );
-   // }
   
-    const unsubscribe = onSnapshot(queryConstruida, (snapshot) => {
-      const pacientesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      const pacientesFiltradosEAgrupados = filtrarEAgruparPacientes(pacientesData, mostrarAlta);
-      setPacientes(pacientesFiltradosEAgrupados);
-    });
   
-    return () => unsubscribe();
-  }, [mostrarAlta]);
   
-  const agruparPorHospital = (pacientes) => {
-    return pacientes.reduce((acc, paciente) => {
-      acc[paciente.hospital] = acc[paciente.hospital] || [];
-      acc[paciente.hospital].push(paciente);
-      return acc;
-    }, {});
-  };
   
 
   useEffect(() => {
@@ -160,7 +129,7 @@ const adicionarEvolucao = async (event) => {
 
 const handleSubmitProducao = async (event) => {
   event.preventDefault();
-  const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter } = event.target.elements;
+  const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter, dataProducao } = event.target.elements;
   console.log(dataAcesso.value)
   //const dataAcessoTimestamp = dataAcesso.value ? Timestamp.fromDate(new Date(dataAcesso.value)) : null;
   //console.log(dataAcessoTimestamp)
@@ -173,7 +142,8 @@ const handleSubmitProducao = async (event) => {
       conduta: { nome: nomeConduta.value },
       producao: { nome: nomeProducao.value },
       usou_cateter: usouCateter.checked,
-      user: currentUser.email // Pode manter o usuário original ou atualizar
+      user: currentUser.email,
+      criada_em: dataProducao.value // Pode manter o usuário original ou atualizar
     };
 
     const pacienteDoc = await getDoc(pacienteRef);
@@ -189,7 +159,7 @@ const handleSubmitProducao = async (event) => {
     producao: { nome: nomeProducao.value },
     usou_cateter: usouCateter.checked,
     user: currentUser.email, // Usando o e-mail do usuário logado
-    criadaEm: Timestamp.now() // Timestamp do momento da criação
+    criada_em: dataProducao.value // Timestamp do momento da criação
   };
 
   // Adicionar novaProducao ao paciente no Firebase

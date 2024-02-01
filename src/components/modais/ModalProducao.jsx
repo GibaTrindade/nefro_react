@@ -88,6 +88,15 @@ export const ModalProducao = ({
 
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Data da Produção</Form.Label>
+              <></>
+              <Form.Control type="date" 
+                            name="dataProducao" 
+                            defaultValue={producaoAtual?.criada_em ? producaoAtual.criada_em : ''} 
+                            required
+                            />
+            </Form.Group>
 
             {/* Botão para Submeter o Formulário */}
             <Button variant="warning" type="submit">Editar Produção</Button>
@@ -138,11 +147,24 @@ export const ModalProducao = ({
                 name="usouCateter"
               />
             </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Data da Produção</Form.Label>
+              <></>
+              <Form.Control type="date" 
+                            name="dataProducao" 
+                            required
+                            />
+            </Form.Group>
 
             {/* Botão para Submeter o Formulário */}
-            <Button variant="primary" type="submit">Adicionar Produção</Button>
+            <Button variant="primary" type="submit" className="mb-2">Adicionar Produção</Button>
           </Form>
-            {pacienteAtual && pacienteAtual.producao && pacienteAtual.producao.map((item, index) => (
+          <hr/>
+          <h3 className="mb-3">Histórico de Produções</h3>
+            { pacienteAtual && 
+              pacienteAtual.producao && 
+              pacienteAtual.producao.sort((a, b) => new Date(a.criada_em) - new Date(b.criada_em)).map((item, index) => (
             
                 <div key={index} className="border p-3 mb-3 rounded">
                   <p className="text-muted">Usuário: {item.user}</p>
@@ -157,6 +179,9 @@ export const ModalProducao = ({
                   )}
                   {(
                     <p><strong>Usou Cateter:</strong> {item.usou_cateter ? 'Sim' : 'Não'}</p>
+                  )}
+                  {item.criada_em && (
+                    <p><strong>Criada em:</strong> {item.criada_em}</p>
                   )}
                   {item.user === currentUser.email && (
                         <Button variant="warning" onClick={() => editarProducao(item, index)}>
