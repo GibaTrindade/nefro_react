@@ -42,7 +42,7 @@ function App() {
     // } else {
       queryConstruida = query(queryConstruida, 
                               orderBy("hospital"), // Primeiro ordena por hospital
-                              orderBy("nome")   );
+                              orderBy("setor")   );
    // }
   
     const unsubscribe = onSnapshot(queryConstruida, (snapshot) => {
