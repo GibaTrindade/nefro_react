@@ -67,25 +67,25 @@ function Producao({pacientes}) {
   };
 
   
-  function countCondutasComNome(dataSelecionada, nomeConduta) {
-    let count = 0;
+  // function countCondutasComNome(dataSelecionada, nomeConduta) {
+  //   let count = 0;
   
-    pacientes.forEach((paciente) => {
-      paciente.producao.forEach((item) => {
-        if (item.conduta.nome === nomeConduta && item.criada_em.startsWith(dataSelecionada)) {
-          count++;
-        }
-      });
-    });
+  //   pacientes.forEach((paciente) => {
+  //     paciente.producao.forEach((item) => {
+  //       if (item.conduta.nome === nomeConduta && item.criada_em.startsWith(dataSelecionada)) {
+  //         count++;
+  //       }
+  //     });
+  //   });
   
-    return count;
-  }
+  //   return count;
+  // }
 
   function countProducoesComNomes(dataSelecionada, nomesProducao) {
     let count = 0;
   
     pacientes.forEach((paciente) => {
-      paciente.producao.forEach((item) => {
+      paciente.producao?.forEach((item) => {
         if (nomesProducao.includes(item.producao.nome) && item.criada_em.startsWith(dataSelecionada)) {
           count++;
         }
@@ -101,7 +101,7 @@ function Producao({pacientes}) {
     let count = 0;
   
     pacientes.forEach((paciente) => {
-      paciente.producao.forEach((item) => {
+      paciente.producao?.forEach((item) => {
         if (item.usou_cateter && item.criada_em.startsWith(dataSelecionada)) {
           count++;
         }
