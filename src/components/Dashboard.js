@@ -32,7 +32,7 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
   const [producaoAtual, setProducaoAtual] = useState(null);
   const [indiceProducaoAtual, setIndiceProducaoAtual] = useState(null);
   const [modoEdicaoProducao, setModoEdicaoProducao] = useState(false);
-  const [nomeAcessoSelecionado, setNomeAcessoSelecionado] = useState('');
+  //const [nomeAcessoSelecionado, setNomeAcessoSelecionado] = useState('');
   const [nomeCondutaSelecionada, setNomeCondutaSelecionada] = useState('');
   
 
@@ -62,13 +62,13 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
   
   
 
-  useEffect(() => {
-    if (modoEdicaoProducao && producaoAtual) {
-      setNomeAcessoSelecionado(producaoAtual.acesso.nome);
-      setNomeCondutaSelecionada(producaoAtual.conduta.nome);
-      // Repita para outros campos
-    }
-  }, [modoEdicaoProducao, producaoAtual]);
+  // useEffect(() => {
+  //   if (modoEdicaoProducao && producaoAtual) {
+  //     setNomeAcessoSelecionado(producaoAtual.acesso.nome);
+  //     setNomeCondutaSelecionada(producaoAtual.conduta.nome);
+  //     // Repita para outros campos
+  //   }
+  // }, [modoEdicaoProducao, producaoAtual]);
 
   //const pacientesPorHospital = agruparPorHospital(pacientes);  
 
@@ -282,6 +282,7 @@ const editarProducao = (producao, index) => {
           abrirModalEdicao={abrirModalEdicao} 
           abrirModalProducao={abrirModalProducao}
           abrirModalEvolucao={abrirModalEvolucao}/>
+          
     {/*
       <Row xs={1} md={3} className="g-4">
         {pacientes.map(paciente => (
@@ -318,6 +319,7 @@ const editarProducao = (producao, index) => {
         ))}
       </Row>
       */}
+      
     </Container>
   );
 };
