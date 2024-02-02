@@ -16,10 +16,10 @@ export const ModalProducao = ({
     nomeCondutaSelecionada
 }) => {
 
-    const formatarData = (data) => {
-        //const data = timestamp.toDate();
-        return data.toISOString().split('T')[0]; // Formato yyyy-MM-dd
-      };
+    // const formatarData = (data) => {
+    //     //const data = timestamp.toDate();
+    //     return data.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+    //   };
 
 
     return (
@@ -37,7 +37,7 @@ export const ModalProducao = ({
               <Form.Label>Acesso</Form.Label>
               <Form.Select name="nomeAcesso" defaultValue={producaoAtual?.acesso?.nome} required>
               <option value="">Selecione um Acesso</option>
-                {acessos.map(acesso => (
+                {acessos.sort((a, b) => a.nome.localeCompare(b.nome)).map(acesso => (
                   <option key={acesso.id} value={acesso.nome}>{acesso.nome}</option>
                 ))}
               </Form.Select>
@@ -59,7 +59,7 @@ export const ModalProducao = ({
               onChange={(e) => setNomeCondutaSelecionada(e.target.value)} 
               required>
                 <option value="">Selecione uma Conduta</option>
-                {condutas.map(conduta => (
+                {condutas.sort((a, b) => a.nome.localeCompare(b.nome)).map(conduta => (
                   <option key={conduta.id} value={conduta.nome}>{conduta.nome}</option>
                 ))}
               </Form.Select>
@@ -109,7 +109,7 @@ export const ModalProducao = ({
               <Form.Label>Acesso</Form.Label>
               <Form.Select name="nomeAcesso" required>
               <option value="">Selecione um Acesso</option>
-                {acessos.map(acesso => (
+                {acessos.sort((a, b) => a.nome.localeCompare(b.nome)).map(acesso => (
                   <option key={acesso.id} value={acesso.nome}>{acesso.nome}</option>
                 ))}
               </Form.Select>
@@ -122,7 +122,7 @@ export const ModalProducao = ({
               <Form.Label>Conduta</Form.Label>
               <Form.Select name="nomeConduta" required>
               <option value="">Selecione uma Conduta</option>
-                {condutas.map(conduta => (
+                {condutas.sort((a, b) => a.nome.localeCompare(b.nome)).map(conduta => (
                   <option key={conduta.id} value={conduta.nome}>{conduta.nome}</option>
                 ))}
               </Form.Select>

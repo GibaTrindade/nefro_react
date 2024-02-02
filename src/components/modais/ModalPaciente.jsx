@@ -1,6 +1,6 @@
 import {Button, Modal, Form } from 'react-bootstrap';
 
-export const ModalPaciente = ({showModal, handleCloseModal, handleSubmit, modoEdicao, pacienteAtual, hospitais}) => {
+export const ModalPaciente = ({showModal, handleCloseModal, handleSubmit, modoEdicao, pacienteAtual, hospitais, convenios}) => {
 
 
     return (
@@ -36,13 +36,18 @@ export const ModalPaciente = ({showModal, handleCloseModal, handleSubmit, modoEd
             </Form.Group>
             <Form.Group className="mb-3">
             <Form.Label>Convênio</Form.Label>
-            <Form.Control type="text" name="convenio" defaultValue={modoEdicao ? pacienteAtual.convenio : ''} required />
+              <Form.Select name="convenio" defaultValue={modoEdicao ? pacienteAtual.hospital : ''} required>
+              <option value="">Selecione um Convênio</option>
+                {convenios.sort((a, b) => a.nome.localeCompare(b.nome)).map(convenio => (
+                  <option key={convenio.id} value={convenio.nome}>{convenio.nome}</option>
+                ))}
+              </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">
             <Form.Label>Hospital</Form.Label>
             <Form.Select name="hospital" defaultValue={modoEdicao ? pacienteAtual.hospital : ''} required>
               <option value="">Selecione um Hospital</option>
-              {hospitais.map(hospital => (
+              {hospitais.sort((a, b) => a.nome.localeCompare(b.nome)).map(hospital => (
                 <option key={hospital.id} value={hospital.nome}>{hospital.nome}</option>
               ))}
             </Form.Select>

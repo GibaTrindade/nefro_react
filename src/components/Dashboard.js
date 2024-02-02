@@ -20,6 +20,7 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
   const [showEvolucaoModal, setShowEvolucaoModal] = useState(false);
   const [showProducaoModal, setShowProducaoModal] = useState(false);
   const [hospitais, setHospitais] = useState([]);
+  const [convenios, setConvenios] = useState([]);
   const [acessos, setAcessos] = useState([]);
   const [condutas, setCondutas] = useState([]);
   const [producoes, setProducoes] = useState([]);
@@ -45,11 +46,13 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
       const acessosSnap = await getDocs(collection(db, "acessos"));
       const condutasSnap = await getDocs(collection(db, "condutas"));
       const producoesSnap = await getDocs(collection(db, "producoes"));
+      const conveniosSnap = await getDocs(collection(db, "convenios"));
       
       setHospitais(hospitaisData);
       setAcessos(acessosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setCondutas(condutasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setProducoes(producoesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setConvenios(conveniosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
   
     fetchData();
@@ -256,7 +259,8 @@ const editarProducao = (producao, index) => {
           handleSubmit={handleSubmit} 
           modoEdicao={modoEdicao} 
           pacienteAtual={pacienteAtual} 
-          hospitais={hospitais}/>
+          hospitais={hospitais}
+          convenios={convenios}/>
       <ModalEvolucao 
           showEvolucaoModal={showEvolucaoModal}
           handleCloseEvolucaoModal={handleCloseEvolucaoModal}
