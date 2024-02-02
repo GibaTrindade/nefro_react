@@ -18,7 +18,7 @@ function Producao({pacientes}) {
   const [valores, setValores] = useState([]);
   const [totalMensal, setTotalMensal] = useState(0);
   //const [valor, setValor] = useState(0);
-  let valor = 0
+  //let valor = 0
 
   useEffect(() => {
     const currentDate = new Date();
