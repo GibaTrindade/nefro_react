@@ -79,6 +79,7 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
     event.preventDefault();
     const { nome, setor, idade, registro, diagnostico, alta, convenio, hospital } = event.target.elements;
     if (modoEdicao) {
+      handleCloseModal();
       const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
         await updateDoc(pacienteRef, {
           nome: nome.value,
@@ -92,6 +93,7 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
       });
     } else {
     try {
+      handleCloseModal();
       await addDoc(collection(db, "pacientes"), {
         nome: nome.value,
         setor: setor.value,
@@ -103,7 +105,7 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
         hospital: hospital.value,
         criadoEm: serverTimestamp()
       });
-      handleCloseModal();
+      
       // Atualizar a lista de pacientes
     } catch (error) {
       console.error("Erro ao adicionar paciente:", error);

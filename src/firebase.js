@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -16,4 +16,9 @@ const app = initializeApp(firebaseConfig);
 
 // Instâncias de autenticação e Firestore
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+//export const db = getFirestore(app);
+
+
+export const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED
+});
