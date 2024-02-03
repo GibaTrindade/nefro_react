@@ -15,48 +15,51 @@ function getDaysInMonth(month, year) {
 function Producao({pacientes}) {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [daysOfMonth, setDaysOfMonth] = useState([]);
-  //const [valores, setValores] = useState([]);
-  //const [totalMensal, setTotalMensal] = useState(0);
+  const [valores, setValores] = useState([]);
+  const [totalMensal, setTotalMensal] = useState(0);
   //const [valor, setValor] = useState(0);
   //let valor = 0
 
-  // useEffect(() => {
-  //   const currentDate = new Date();
-  //   const currentMonth = selectedMonth//currentDate.getMonth() + 1; // Mês atual
-  //   const currentYear = currentDate.getFullYear();
-  //   const daysArray = getDaysInMonth(currentMonth, currentYear);
-  //   //setDaysOfMonth(daysArray);
-  //   //setSelectedMonth(currentMonth.toString()); // Defina o mês selecionado como o mês atual
+  useEffect(() => {
+    const currentDate = new Date();
+    const currentMonth = selectedMonth//currentDate.getMonth() + 1; // Mês atual
+    const currentYear = currentDate.getFullYear();
+    const daysArray = getDaysInMonth(currentMonth, currentYear);
+    //setDaysOfMonth(daysArray);
+    //setSelectedMonth(currentMonth.toString()); // Defina o mês selecionado como o mês atual
 
-  //   // Calcular os valores aqui com base nos dias do mês e atualizar o estado
-  //   const calculatedValores = daysArray.map((day) => {
-  //       const countParecerVisita = countProducoesComNomes(
-  //         format(day, 'yyyy-MM-dd'),
-  //         ['PARECER', 'VISITA']
-  //       ) * 70;
-  //       const countCateter = countProducoesComCateter(
-  //           format(day, 'yyyy-MM-dd')
-  //         ) * 150; 
-  //       const countHemodialise = countProducoesComNomes(
-  //         format(day, 'yyyy-MM-dd'),
-  //         ['HEMODIÁLISE']
-  //       ) * 108; // Multiplica por 108 para HEMODIÁLISE
-  //       const countHdfcMeio = countProducoesComNomes(
-  //           format(day, 'yyyy-MM-dd'),
-  //           ['HDC (0,5)']
-  //         ) * 180;
-  //         const countHdfcInteiro = countProducoesComNomes(
-  //           format(day, 'yyyy-MM-dd'),
-  //           ['HDC (1,0)']
-  //         ) * 360;
-  //         const totalValores = countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
-  //         setValores(totalValores);
-  //         const total = calculatedValores.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-  //         setTotalMensal(total);
-  //       //return countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
-  //     });
-  //     calculatedValores()
-  // }, [selectedMonth]);
+    // Calcular os valores aqui com base nos dias do mês e atualizar o estado
+    const calculatedValores = daysArray.map((day) => {
+        const countParecerVisita = countProducoesComNomes(
+          format(day, 'yyyy-MM-dd'),
+          ['PARECER', 'VISITA']
+        ) * 70;
+        const countCateter = countProducoesComCateter(
+            format(day, 'yyyy-MM-dd')
+          ) * 150; 
+        const countHemodialise = countProducoesComNomes(
+          format(day, 'yyyy-MM-dd'),
+          ['HEMODIÁLISE']
+        ) * 108; // Multiplica por 108 para HEMODIÁLISE
+        const countHdfcMeio = countProducoesComNomes(
+            format(day, 'yyyy-MM-dd'),
+            ['HDC (0,5)']
+          ) * 180;
+          const countHdfcInteiro = countProducoesComNomes(
+            format(day, 'yyyy-MM-dd'),
+            ['HDC (1,0)']
+          ) * 360;
+          
+        return countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
+      });
+      
+      //calculatedValores()
+      //const totalValores = countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
+          setValores(calculatedValores);
+          const totalValores = calculatedValores.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+          setTotalMensal(totalValores);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth]);
 
 
   const handleMonthChange = (event) => {
@@ -125,7 +128,7 @@ function Producao({pacientes}) {
 
   return (
     <div className="container mt-4">
-      <h2>Producao do Mês</h2>
+      <h2>Producao do Mês: R$ {totalMensal}</h2>
       <div className="form-group col-4 col-md-3 mb-2">
         <label htmlFor="monthSelect">Selecione o Mês:</label>
         <select
@@ -170,7 +173,7 @@ function Producao({pacientes}) {
               <td> {countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HEMODIÁLISE'])}</td>
               <td> {countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HDC (1,0)']) + countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HDC (0,5)'])*0.5}</td>
               <td> {countProducoesComCateter(format(day, 'yyyy-MM-dd'))}</td>
-              <td> {}</td>
+              <td> {valores[index]}</td>
             </tr>
             
           ))}
