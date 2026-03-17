@@ -1,184 +1,279 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { collectionGroup, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
 function getDaysInMonth(month, year) {
   const daysInMonth = new Date(year, month, 0).getDate();
   const daysArray = [];
 
-  for (let day = 1; day <= daysInMonth; day++) {
+  for (let day = 1; day <= daysInMonth; day += 1) {
     daysArray.push(new Date(year, month - 1, day));
   }
 
   return daysArray;
 }
 
-function Producao({pacientes}) {
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s*\+\s*/g, '+')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+function countProducoesComNomes(registros, dataSelecionada, nomesProducao) {
+  const nomesNormalizados = nomesProducao.map(nome => normalizeText(nome));
+
+  return registros.filter(item => {
+    const nomeProducao = normalizeText(item.producao?.nome);
+    return nomesNormalizados.some(nome => nomeProducao === nome || nomeProducao.startsWith(`${nome}+`)) && item.criada_em?.startsWith(dataSelecionada);
+  }).length;
+}
+
+function countProducoesComCateter(registros, dataSelecionada) {
+  return registros.filter(item => item.usou_cateter && item.criada_em?.startsWith(dataSelecionada)).length;
+}
+
+function Producao() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [daysOfMonth, setDaysOfMonth] = useState([]);
   const [valores, setValores] = useState([]);
   const [totalMensal, setTotalMensal] = useState(0);
-  //const [valor, setValor] = useState(0);
-  //let valor = 0
+  const [producoesRegistros, setProducoesRegistros] = useState([]);
+  const [dadosEmCache, setDadosEmCache] = useState(false);
+  const [resumo, setResumo] = useState({
+    parecerVisita: 0,
+    hemodialise: 0,
+    hdc: 0,
+    cateter: 0,
+    diasComMovimento: 0,
+  });
 
   useEffect(() => {
     const currentDate = new Date();
-    const currentMonth = selectedMonth//currentDate.getMonth() + 1; // Mês atual
-    const currentYear = currentDate.getFullYear();
-    const daysArray = getDaysInMonth(currentMonth, currentYear);
-    //setDaysOfMonth(daysArray);
-    //setSelectedMonth(currentMonth.toString()); // Defina o mês selecionado como o mês atual
+    const currentMonth = currentDate.getMonth() + 1;
+    setSelectedMonth(currentMonth.toString());
+  }, []);
 
-    // Calcular os valores aqui com base nos dias do mês e atualizar o estado
-    const calculatedValores = daysArray.map((day) => {
-        const countParecerVisita = countProducoesComNomes(
-          format(day, 'yyyy-MM-dd'),
-          ['PARECER', 'VISITA']
-        ) * 70;
-        const countCateter = countProducoesComCateter(
-            format(day, 'yyyy-MM-dd')
-          ) * 150; 
-        const countHemodialise = countProducoesComNomes(
-          format(day, 'yyyy-MM-dd'),
-          ['HEMODIÁLISE']
-        ) * 108; // Multiplica por 108 para HEMODIÁLISE
-        const countHdfcMeio = countProducoesComNomes(
-            format(day, 'yyyy-MM-dd'),
-            ['HDC (0,5)']
-          ) * 180;
-          const countHdfcInteiro = countProducoesComNomes(
-            format(day, 'yyyy-MM-dd'),
-            ['HDC (1,0)']
-          ) * 360;
-          
-        return countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
-      });
-      
-      //calculatedValores()
-      //const totalValores = countParecerVisita + countHemodialise + countCateter + countHdfcMeio + countHdfcInteiro;
-          setValores(calculatedValores);
-          const totalValores = calculatedValores.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-          setTotalMensal(totalValores);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth]);
-
-
-  const handleMonthChange = (event) => {
-    setSelectedMonth(event.target.value);
-    const currentDate = new Date();
-    const selectedYear = currentDate.getFullYear();
-    const selectedDate = new Date(selectedYear, parseInt(event.target.value) - 1, 1);
-    const daysArray = getDaysInMonth(selectedDate.getMonth() + 1, selectedYear);
-    setDaysOfMonth(daysArray);
-  };
-
-  
-  // function countCondutasComNome(dataSelecionada, nomeConduta) {
-  //   let count = 0;
-  
-  //   pacientes.forEach((paciente) => {
-  //     paciente.producao.forEach((item) => {
-  //       if (item.conduta.nome === nomeConduta && item.criada_em.startsWith(dataSelecionada)) {
-  //         count++;
-  //       }
-  //     });
-  //   });
-  
-  //   return count;
-  // }
-
-  function countProducoesComNomes(dataSelecionada, nomesProducao) {
-    let count = 0;
-  
-    pacientes.forEach((paciente) => {
-      paciente.producao?.forEach((item) => {
-        if (nomesProducao.includes(item.producao.nome) && item.criada_em.startsWith(dataSelecionada)) {
-          count++;
-        }
-      });
-    });
-    
-    return count;
-  }
-  
-  
-
-  function countProducoesComCateter(dataSelecionada) {
-    let count = 0;
-  
-    pacientes.forEach((paciente) => {
-      paciente.producao?.forEach((item) => {
-        if (item.usou_cateter && item.criada_em.startsWith(dataSelecionada)) {
-          count++;
-        }
-      });
-    });
-  
-    return count;
-  }
-
-  // Use useEffect para carregar os dias do mês atual ao renderizar
   useEffect(() => {
+    const producoesQuery = collectionGroup(db, 'producoes');
+
+    return onSnapshot(producoesQuery, snapshot => {
+      setProducoesRegistros(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+      setDadosEmCache(snapshot.metadata.fromCache);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMonth) {
+      return;
+    }
+
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // Mês atual
     const currentYear = currentDate.getFullYear();
-    const daysArray = getDaysInMonth(currentMonth, currentYear);
-    setDaysOfMonth(daysArray);
-    setSelectedMonth(currentMonth.toString()); // Defina o mês selecionado como o mês atual
-  }, []); // O segundo argumento vazio [] garante que isso seja executado apenas uma vez
+    const monthDays = getDaysInMonth(Number(selectedMonth), currentYear);
+    const calculatedValores = monthDays.map(day => {
+      const dataSelecionada = format(day, 'yyyy-MM-dd');
+      const countParecerVisita = countProducoesComNomes(producoesRegistros, dataSelecionada, ['PARECER', 'VISITA', 'VISITA+CATETER']) * 70;
+      const countCateter = countProducoesComCateter(producoesRegistros, dataSelecionada) * 150;
+      const countHemodialise = countProducoesComNomes(producoesRegistros, dataSelecionada, ['HEMODIALISE']) * 108;
+      const countHdcMeio = countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (0,5)']) * 180;
+      const countHdcInteiro = countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (1,0)']) * 360;
+
+      return countParecerVisita + countCateter + countHemodialise + countHdcMeio + countHdcInteiro;
+    });
+
+    setDaysOfMonth(monthDays);
+    setValores(calculatedValores);
+    setTotalMensal(calculatedValores.reduce((accumulator, currentValue) => accumulator + currentValue, 0));
+
+    let totalParecerVisita = 0;
+    let totalHemodialise = 0;
+    let totalHdc = 0;
+    let totalCateter = 0;
+
+    monthDays.forEach(day => {
+      const dataSelecionada = format(day, 'yyyy-MM-dd');
+      totalParecerVisita += countProducoesComNomes(producoesRegistros, dataSelecionada, ['PARECER', 'VISITA', 'VISITA+CATETER']);
+      totalHemodialise += countProducoesComNomes(producoesRegistros, dataSelecionada, ['HEMODIALISE']);
+      totalHdc +=
+        countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (1,0)']) +
+        countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (0,5)']) * 0.5;
+      totalCateter += countProducoesComCateter(producoesRegistros, dataSelecionada);
+    });
+
+    setResumo({
+      parecerVisita: totalParecerVisita,
+      hemodialise: totalHemodialise,
+      hdc: totalHdc,
+      cateter: totalCateter,
+      diasComMovimento: calculatedValores.filter(valor => valor > 0).length,
+    });
+  }, [selectedMonth, producoesRegistros]);
+
+  const topDias = daysOfMonth
+    .map((day, index) => ({
+      dia: format(day, 'dd/MM'),
+      valor: valores[index] || 0,
+    }))
+    .filter(item => item.valor > 0)
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, 5);
 
   return (
-    <div className="container mt-4">
-      <h2>Producao do Mês: R$ {totalMensal}</h2>
-      <div className="form-group col-4 col-md-3 mb-2">
-        <label htmlFor="monthSelect">Selecione o Mês:</label>
-        <select
-          id="monthSelect"
-          className="form-control"
-          value={selectedMonth}
-          onChange={handleMonthChange}
-        >
-          {/* Opções para os meses */}
-          <option value="1">Janeiro</option>
-          <option value="2">Fevereiro</option>
-          <option value="3">Março</option>
-          <option value="4">Abril</option>
-          <option value="5">Maio</option>
-          <option value="6">Junho</option>
-          <option value="7">Julho</option>
-          <option value="8">Agosto</option>
-          <option value="9">Setembro</option>
-          <option value="10">Outubro</option>
-          <option value="11">Novembro</option>
-          <option value="12">Dezembro</option>
-          {/* Adicione outras opções para os meses aqui */}
-        </select>
-      </div>
-      <div className="table-responsive">
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Dia</th>
-            <th>PARECER/VISITA (SEM PROCEDIMENTO)</th>
-            <th>HEMODIÁLISE</th>
-            <th>HDFC</th>
-            <th>CATETER</th>
-            <th>VALOR</th>
-          </tr>
-        </thead>
-        <tbody>
-          {daysOfMonth.map((day, index) => (
-            <tr key={index}>
-              <td>{format(day, 'dd/MM/yyyy')}</td>
-              <td> {countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['PARECER', 'VISITA'])}</td>
-              <td> {countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HEMODIÁLISE'])}</td>
-              <td> {countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HDC (1,0)']) + countProducoesComNomes(format(day, 'yyyy-MM-dd'), ['HDC (0,5)'])*0.5}</td>
-              <td> {countProducoesComCateter(format(day, 'yyyy-MM-dd'))}</td>
-              <td> {valores[index]}</td>
-            </tr>
-            
-          ))}
-        </tbody>
-      </table>
+    <div className="page-shell">
+      <div className="container-app">
+        <section className="hero-card hero-card--compact">
+          <div className="hero-copy">
+            <span className="eyebrow">Producao</span>
+            <h1>Resumo mensal com leitura rapida.</h1>
+            <p>Comece pelos indicadores principais e desca para o detalhe diario so quando precisar.</p>
+            <p>{dadosEmCache ? 'Modo offline ativo. Os totais serao confirmados quando a rede voltar.' : 'Dados sincronizados com as subcolecoes de producao.'}</p>
+          </div>
+
+          <label className="field month-filter">
+            <span>Mes</span>
+            <select id="monthSelect" value={selectedMonth} onChange={event => setSelectedMonth(event.target.value)}>
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Marco</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </label>
+        </section>
+
+        <section className="stats-grid">
+          <article className="metric-card metric-card--highlight">
+            <span>Total estimado</span>
+            <strong>{currencyFormatter.format(totalMensal)}</strong>
+            <small>Faturamento calculado para o mes selecionado</small>
+          </article>
+          <article className="metric-card">
+            <span>Parecer / Visita</span>
+            <strong>{resumo.parecerVisita}</strong>
+            <small>Atendimentos sem procedimento</small>
+          </article>
+          <article className="metric-card">
+            <span>Hemodialise</span>
+            <strong>{resumo.hemodialise}</strong>
+            <small>Sessoes registradas</small>
+          </article>
+          <article className="metric-card">
+            <span>HDC + Cateter</span>
+            <strong>{resumo.hdc + resumo.cateter}</strong>
+            <small>{resumo.diasComMovimento} dias com movimento</small>
+          </article>
+        </section>
+
+        <section className="panel-grid">
+          <article className="panel-card">
+            <div className="section-heading">
+              <span className="eyebrow">Picos do mes</span>
+              <h2>Dias com maior valor</h2>
+            </div>
+
+            {topDias.length ? (
+              <div className="activity-list">
+                {topDias.map(item => (
+                  <div key={item.dia} className="activity-row">
+                    <div>
+                      <strong>{item.dia}</strong>
+                      <span>{currencyFormatter.format(item.valor)}</span>
+                    </div>
+                    <div className="activity-bar">
+                      <span style={{ width: `${Math.max((item.valor / topDias[0].valor) * 100, 12)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="state-card state-card--compact">
+                <p>Nao ha producoes registradas neste mes.</p>
+              </div>
+            )}
+          </article>
+
+          <article className="panel-card">
+            <div className="section-heading">
+              <span className="eyebrow">Indicadores</span>
+              <h2>Leitura operacional</h2>
+            </div>
+
+            <div className="summary-list">
+              <div>
+                <strong>{resumo.hdc}</strong>
+                <span>HDC</span>
+              </div>
+              <div>
+                <strong>{resumo.cateter}</strong>
+                <span>Cateter</span>
+              </div>
+              <div>
+                <strong>{daysOfMonth.length}</strong>
+                <span>Dias no mes</span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section className="panel-card">
+          <div className="section-heading">
+            <span className="eyebrow">Detalhe diario</span>
+            <h2>Tabela de producao</h2>
+          </div>
+
+          <div className="table-card">
+            <div className="table-responsive">
+              <table className="table table-modern">
+                <thead>
+                  <tr>
+                    <th>Dia</th>
+                    <th>Parecer / Visita</th>
+                    <th>Hemodialise</th>
+                    <th>HDC</th>
+                    <th>Cateter</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {daysOfMonth.map((day, index) => {
+                    const dataSelecionada = format(day, 'yyyy-MM-dd');
+                    const hdcTotal =
+                      countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (1,0)']) +
+                      countProducoesComNomes(producoesRegistros, dataSelecionada, ['HDC (0,5)']) * 0.5;
+
+                    return (
+                      <tr key={dataSelecionada}>
+                        <td>{format(day, 'dd/MM/yyyy')}</td>
+                        <td>{countProducoesComNomes(producoesRegistros, dataSelecionada, ['PARECER', 'VISITA', 'VISITA+CATETER'])}</td>
+                        <td>{countProducoesComNomes(producoesRegistros, dataSelecionada, ['HEMODIALISE'])}</td>
+                        <td>{hdcTotal}</td>
+                        <td>{countProducoesComCateter(producoesRegistros, dataSelecionada)}</td>
+                        <td>{currencyFormatter.format(valores[index] || 0)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

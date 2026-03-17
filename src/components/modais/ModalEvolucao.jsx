@@ -1,44 +1,71 @@
-import {Button, Modal, Form } from 'react-bootstrap';
+import { Button, Form, Modal } from 'react-bootstrap';
+
+const formatarData = data => {
+  if (!data) {
+    return 'Agora';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(data));
+};
 
 export const ModalEvolucao = ({
-    showEvolucaoModal, 
-    handleCloseEvolucaoModal, 
-    evolucoes, 
-    adicionarEvolucao, 
-    setTextoEvolucao}) => {
-
-
-    return (
-
-        <Modal show={showEvolucaoModal} onHide={handleCloseEvolucaoModal}>
-            <Modal.Header closeButton>
-            <Modal.Title>Adicionar Evolução</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-            <div>
-            <h5>Evoluções:</h5>
-            <div className="border p-3 rounded mt-2 mb-4 overflow-auto" style={{ maxHeight: '200px' }}>
-                {evolucoes.length > 1 ? evolucoes.slice(0, -1).map(e => e.texto).join('. ') + '. ' : ''}
-                <span className={evolucoes.length > 0 ? "text-danger" : ""}>
-                {evolucoes.length > 0 ? evolucoes[evolucoes.length - 1].texto : ''}
-                </span>
-            </div>
-            </div>
-            <Form onSubmit={adicionarEvolucao}>
-                <Form.Group className="mb-3">
-                <Form.Label>Evolução</Form.Label>
-                <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" 
-                                    placeholder="Digite a evolução" 
-                                    onChange={(e) => setTextoEvolucao(e.target.value)} 
-                                    required />
-                    <Button variant="success" type='submit' style={{ marginLeft: '10px' }} >
-                    + Evolução
-                    </Button>
+  showEvolucaoModal,
+  handleCloseEvolucaoModal,
+  evolucoes,
+  adicionarEvolucao,
+  setTextoEvolucao,
+  textoEvolucao,
+  pacienteAtual,
+}) => {
+  return (
+    <Modal show={showEvolucaoModal} onHide={handleCloseEvolucaoModal} size="lg" centered dialogClassName="app-modal">
+      <Modal.Header closeButton>
+        <Modal.Title>Evolucoes de {pacienteAtual?.nome || 'paciente'}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body className="modal-body-scroll">
+        <div className="timeline-list">
+          {evolucoes.length ? (
+            evolucoes.map((evolucao, index) => (
+              <article key={`${evolucao.criada_em || 'item'}-${index}`} className="timeline-item">
+                <div className="timeline-item__meta">
+                  <strong>{evolucao.user_email || 'Equipe assistencial'}</strong>
+                  <span>{formatarData(evolucao.criada_em)}</span>
                 </div>
-                </Form.Group>
-            </Form>
-            </Modal.Body>
-      </Modal>
-    )
-}
+                <p>{evolucao.texto}</p>
+              </article>
+            ))
+          ) : (
+            <div className="state-card state-card--compact">
+              <p>Nenhuma evolucao registrada ate o momento.</p>
+            </div>
+          )}
+        </div>
+
+        <Form onSubmit={adicionarEvolucao}>
+          <Form.Group className="field">
+            <Form.Label>Nova evolucao</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              placeholder="Descreva a evolucao clinica de forma objetiva"
+              value={textoEvolucao}
+              onChange={event => setTextoEvolucao(event.target.value)}
+              required
+            />
+          </Form.Group>
+          <div className="modal-actions">
+            <Button variant="light" onClick={handleCloseEvolucaoModal}>
+              Fechar
+            </Button>
+            <Button variant="success" type="submit">
+              Salvar evolucao
+            </Button>
+          </div>
+        </Form>
+      </Modal.Body>
+    </Modal>
+  );
+};

@@ -15,7 +15,6 @@ import { db } from './firebase';
 function App() {
   const [mostrarAlta, setMostrarAlta] = useState(false);
   const [pacientes, setPacientes] = useState([]);
-  const [pacientesProd, setPacientesProd] = useState([]);
 
 
   const agruparPorHospital = (pacientes) => {
@@ -47,7 +46,6 @@ function App() {
   
     const unsubscribe = onSnapshot(queryConstruida, (snapshot) => {
       const pacientesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      setPacientesProd(pacientesData)
       const pacientesFiltradosEAgrupados = filtrarEAgruparPacientes(pacientesData, mostrarAlta);
       setPacientes(pacientesFiltradosEAgrupados);
     });
@@ -59,15 +57,34 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-      <AppNavbar />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/producao" element={<Producao pacientes={pacientesProd} />} />
-          <Route path="/" element={<PrivateRoute><Dashboard pacientes={pacientes}
-                                                            setPacientes={setPacientes} 
-                                                            mostrarAlta={mostrarAlta} 
-                                                            setMostrarAlta={setMostrarAlta}/></PrivateRoute>} />
-        </Routes>
+        <div className="app-shell">
+          <AppNavbar />
+          <main className="app-content">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/producao"
+                element={
+                  <PrivateRoute>
+                    <Producao />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/"
+                element={
+                  <PrivateRoute>
+                    <Dashboard
+                      pacientes={pacientes}
+                      mostrarAlta={mostrarAlta}
+                      setMostrarAlta={setMostrarAlta}
+                    />
+                  </PrivateRoute>
+                }
+              />
+            </Routes>
+          </main>
+        </div>
       </Router>
     </AuthProvider>
   );

@@ -1,21 +1,25 @@
-// No início do arquivo Dashboard.js
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../AuthContext'
-import { collection, getDocs,
-  addDoc, 
-  serverTimestamp,
-  updateDoc, doc, getDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Container, Button, Form } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useContext, useEffect, useState } from 'react';
+import { Container, Form } from 'react-bootstrap';
 import { FaPlus } from 'react-icons/fa';
-import { ModalPaciente } from './modais/ModalPaciente';
-import { ModalEvolucao } from './modais/ModalEvolucao';
-import { ModalProducao } from './modais/ModalProducao';
+import {
+  addDoc,
+  collection,
+  doc,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore';
+import { AuthContext } from '../AuthContext';
+import { db } from '../firebase';
 import { ListaPacientes } from './ListaPacientes';
+import { ModalEvolucao } from './modais/ModalEvolucao';
+import { ModalPaciente } from './modais/ModalPaciente';
+import { ModalProducao } from './modais/ModalProducao';
 
-const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
-  //const [pacientes, setPacientes] = useState([]);
+const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
   const [showModal, setShowModal] = useState(false);
   const [showEvolucaoModal, setShowEvolucaoModal] = useState(false);
   const [showProducaoModal, setShowProducaoModal] = useState(false);
@@ -23,310 +27,389 @@ const Dashboard = ({pacientes, setPacientes, mostrarAlta, setMostrarAlta}) => {
   const [convenios, setConvenios] = useState([]);
   const [acessos, setAcessos] = useState([]);
   const [condutas, setCondutas] = useState([]);
-  const [producoes, setProducoes] = useState([]);
+  const [producoesCatalogo, setProducoesCatalogo] = useState([]);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [pacienteAtual, setPacienteAtual] = useState(null);
-  //const [mostrarAlta, setMostrarAlta] = useState(false);
-  const [textoEvolucao, setTextoEvolucao] = useState("");
+  const [textoEvolucao, setTextoEvolucao] = useState('');
   const [evolucoes, setEvolucoes] = useState([]);
-  const { currentUser } = useContext(AuthContext);
   const [producaoAtual, setProducaoAtual] = useState(null);
-  const [indiceProducaoAtual, setIndiceProducaoAtual] = useState(null);
+  const [historicoProducoes, setHistoricoProducoes] = useState([]);
   const [modoEdicaoProducao, setModoEdicaoProducao] = useState(false);
-  //const [nomeAcessoSelecionado, setNomeAcessoSelecionado] = useState('');
   const [nomeCondutaSelecionada, setNomeCondutaSelecionada] = useState('');
-  
-
+  const [busca, setBusca] = useState('');
+  const [dadosAuxiliaresEmCache, setDadosAuxiliaresEmCache] = useState(false);
+  const [mensagemSync, setMensagemSync] = useState('');
+  const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "hospitais"));
-      const hospitaisData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      
-      const acessosSnap = await getDocs(collection(db, "acessos"));
-      const condutasSnap = await getDocs(collection(db, "condutas"));
-      const producoesSnap = await getDocs(collection(db, "producoes"));
-      const conveniosSnap = await getDocs(collection(db, "convenios"));
-      
-      setHospitais(hospitaisData);
-      setAcessos(acessosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setCondutas(condutasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setProducoes(producoesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setConvenios(conveniosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const unsubscribeHospitais = onSnapshot(collection(db, 'hospitais'), snapshot => {
+      setHospitais(snapshot.docs.map(docSnapshot => ({ ...docSnapshot.data(), id: docSnapshot.id })));
+      setDadosAuxiliaresEmCache(snapshot.metadata.fromCache);
+    });
+
+    const unsubscribeAcessos = onSnapshot(collection(db, 'acessos'), snapshot => {
+      setAcessos(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+
+    const unsubscribeCondutas = onSnapshot(collection(db, 'condutas'), snapshot => {
+      setCondutas(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+
+    const unsubscribeProducoes = onSnapshot(collection(db, 'producoes'), snapshot => {
+      setProducoesCatalogo(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+
+    const unsubscribeConvenios = onSnapshot(collection(db, 'convenios'), snapshot => {
+      setConvenios(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+
+    return () => {
+      unsubscribeHospitais();
+      unsubscribeAcessos();
+      unsubscribeCondutas();
+      unsubscribeProducoes();
+      unsubscribeConvenios();
     };
-  
-    fetchData();
   }, []);
 
-  
+  useEffect(() => {
+    if (!showEvolucaoModal || !pacienteAtual?.id) {
+      return undefined;
+    }
 
-  
-  
-  
-  
+    const evolucoesQuery = query(collection(db, 'pacientes', pacienteAtual.id, 'evolucoes'), orderBy('criada_em', 'desc'));
 
-  // useEffect(() => {
-  //   if (modoEdicaoProducao && producaoAtual) {
-  //     setNomeAcessoSelecionado(producaoAtual.acesso.nome);
-  //     setNomeCondutaSelecionada(producaoAtual.conduta.nome);
-  //     // Repita para outros campos
-  //   }
-  // }, [modoEdicaoProducao, producaoAtual]);
+    return onSnapshot(evolucoesQuery, snapshot => {
+      setEvolucoes(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+  }, [showEvolucaoModal, pacienteAtual?.id]);
 
-  //const pacientesPorHospital = agruparPorHospital(pacientes);  
+  useEffect(() => {
+    if (!showProducaoModal || !pacienteAtual?.id) {
+      return undefined;
+    }
 
-  const handleSubmit = async (event) => {
+    const producoesQuery = query(collection(db, 'pacientes', pacienteAtual.id, 'producoes'), orderBy('criada_em', 'desc'));
+
+    return onSnapshot(producoesQuery, snapshot => {
+      setHistoricoProducoes(snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() })));
+    });
+  }, [showProducaoModal, pacienteAtual?.id]);
+
+  const pacientesAgrupados = Object.entries(pacientes || {});
+  const todosPacientes = pacientesAgrupados.flatMap(([, pacientesDoHospital]) => pacientesDoHospital);
+  const termoBusca = busca.trim().toLowerCase();
+  const pacientesFiltrados = pacientesAgrupados.reduce((acc, [hospitalNome, pacientesDoHospital]) => {
+    const filtrados = pacientesDoHospital.filter(paciente => {
+      const campos = [
+        paciente.nome,
+        paciente.setor,
+        paciente.registro,
+        paciente.hospital,
+        paciente.convenio,
+        paciente.ultima_evolucao_texto,
+        ...(paciente.diagnostico || []),
+      ];
+
+      return campos.some(campo => String(campo || '').toLowerCase().includes(termoBusca));
+    });
+
+    if (filtrados.length > 0) {
+      acc[hospitalNome] = filtrados;
+    }
+
+    return acc;
+  }, {});
+
+  const pacientesVisiveis = Object.values(pacientesFiltrados).flat();
+  const totalEvolucoes = pacientesVisiveis.filter(paciente => (paciente.evolucao_count || 0) > 0).length;
+  const totalProducoes = pacientesVisiveis.filter(paciente => (paciente.producao_count || 0) > 0).length;
+
+  const handleSubmit = event => {
     event.preventDefault();
     const { nome, setor, idade, registro, diagnostico, alta, convenio, hospital } = event.target.elements;
-    if (modoEdicao) {
-      handleCloseModal();
-      const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
-        await updateDoc(pacienteRef, {
-          nome: nome.value,
-          setor: setor.value,
-          idade: parseInt(idade.value, 10),
-          registro: registro.value,
-          diagnostico: diagnostico.value.split(",").map(d => d.trim()), // Assumindo que os diagnósticos são separados por vírgulas
-          alta: alta.checked,
-          convenio: convenio.value,
-          hospital: hospital.value
+    const payload = {
+      nome: nome.value.trim(),
+      setor: setor.value.trim(),
+      idade: parseInt(idade.value, 10),
+      registro: registro.value.trim(),
+      diagnostico: diagnostico.value
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean),
+      alta: alta.checked,
+      convenio: convenio.value,
+      hospital: hospital.value,
+    };
+
+    handleCloseModal();
+    setMensagemSync('Alteracao salva localmente. O app sincroniza assim que a rede voltar.');
+
+    if (modoEdicao && pacienteAtual) {
+      updateDoc(doc(db, 'pacientes', pacienteAtual.id), payload).catch(error => {
+        console.error('Erro ao atualizar paciente:', error);
+        setMensagemSync('Nao foi possivel sincronizar a alteracao do paciente.');
       });
     } else {
-    try {
-      handleCloseModal();
-      await addDoc(collection(db, "pacientes"), {
-        nome: nome.value,
-        setor: setor.value,
-        idade: parseInt(idade.value, 10),
-        registro: registro.value,
-        diagnostico: diagnostico.value.split(",").map(d => d.trim()), // Assumindo que os diagnósticos são separados por vírgulas
-        alta: alta.checked,
-        convenio: convenio.value,
-        hospital: hospital.value,
-        criadoEm: serverTimestamp()
+      addDoc(collection(db, 'pacientes'), {
+        ...payload,
+        criadoEm: serverTimestamp(),
+        evolucao_count: 0,
+        producao_count: 0,
+      }).catch(error => {
+        console.error('Erro ao adicionar paciente:', error);
+        setMensagemSync('Nao foi possivel sincronizar o cadastro do paciente.');
       });
-      
-      // Atualizar a lista de pacientes
-    } catch (error) {
-      console.error("Erro ao adicionar paciente:", error);
     }
-    }
-    setShowModal(false);
-    setModoEdicao(false);
-    setPacienteAtual(null);
   };
 
+  const adicionarEvolucao = event => {
+    event.preventDefault();
 
+    if (!pacienteAtual || !textoEvolucao.trim()) {
+      return;
+    }
 
-// Função para adicionar uma nova evolução
-const adicionarEvolucao = async (event) => {
-  event.preventDefault();
-  const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
-  const newEvolucao = {
-    texto: textoEvolucao,
-    user_id: currentUser.uid
+    const textoAtual = textoEvolucao.trim();
+    const criadaEm = new Date().toISOString();
+    const pacienteRef = doc(db, 'pacientes', pacienteAtual.id);
+
+    setTextoEvolucao('');
+    handleCloseEvolucaoModal();
+    setMensagemSync('Evolucao salva localmente. A sincronizacao sera retomada quando houver rede.');
+
+    addDoc(collection(db, 'pacientes', pacienteAtual.id, 'evolucoes'), {
+      texto: textoAtual,
+      user_id: currentUser.uid,
+      user_email: currentUser.email,
+      criada_em: criadaEm,
+    })
+      .then(() =>
+        updateDoc(pacienteRef, {
+          evolucao_count: increment(1),
+          ultima_evolucao_texto: textoAtual,
+          ultima_evolucao_em: criadaEm,
+        }),
+      )
+      .catch(error => {
+        console.error('Erro ao salvar evolucao:', error);
+        setMensagemSync('Nao foi possivel sincronizar a evolucao.');
+      });
   };
-  await updateDoc(pacienteRef, {
-    evolucao: arrayUnion(newEvolucao)
-  });
-  handleCloseEvolucaoModal()
-};
 
-const handleSubmitProducao = async (event) => {
-  event.preventDefault();
-  const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter, dataProducao } = event.target.elements;
-  console.log(dataAcesso.value)
-  //const dataAcessoTimestamp = dataAcesso.value ? Timestamp.fromDate(new Date(dataAcesso.value)) : null;
-  //console.log(dataAcessoTimestamp)
-  const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
+  const handleSubmitProducao = event => {
+    event.preventDefault();
+    const { nomeAcesso, dataAcesso, nomeConduta, nomeProducao, usouCateter, dataProducao } = event.target.elements;
 
-  if (modoEdicaoProducao && indiceProducaoAtual != null) {
-    // Atualizar uma produção existente
-    const producaoAtualizada = {
+    if (!pacienteAtual) {
+      return;
+    }
+
+    const pacienteRef = doc(db, 'pacientes', pacienteAtual.id);
+    const novaProducao = {
       acesso: { nome: nomeAcesso.value, data: dataAcesso.value },
       conduta: { nome: nomeConduta.value },
       producao: { nome: nomeProducao.value },
       usou_cateter: usouCateter.checked,
       user: currentUser.email,
-      criada_em: dataProducao.value // Pode manter o usuário original ou atualizar
+      criada_em: dataProducao.value,
     };
 
-    const pacienteDoc = await getDoc(pacienteRef);
-    const producoes = pacienteDoc.data().producao;
+    handleCloseProducaoModal();
+    setMensagemSync('Producao salva localmente. O app envia a sincronizacao quando a conexao voltar.');
 
-    producoes[indiceProducaoAtual] = producaoAtualizada;
+    if (modoEdicaoProducao && producaoAtual?.id) {
+      updateDoc(doc(db, 'pacientes', pacienteAtual.id, 'producoes', producaoAtual.id), novaProducao).catch(error => {
+        console.error('Erro ao editar producao:', error);
+        setMensagemSync('Nao foi possivel sincronizar a edicao da producao.');
+      });
+      return;
+    }
 
-    await updateDoc(pacienteRef, { producao: producoes });
-  } else {
-  const novaProducao = {
-    acesso: { nome: nomeAcesso.value, data: dataAcesso.value },
-    conduta: { nome: nomeConduta.value },
-    producao: { nome: nomeProducao.value },
-    usou_cateter: usouCateter.checked,
-    user: currentUser.email, // Usando o e-mail do usuário logado
-    criada_em: dataProducao.value // Timestamp do momento da criação
+    addDoc(collection(db, 'pacientes', pacienteAtual.id, 'producoes'), novaProducao)
+      .then(() =>
+        updateDoc(pacienteRef, {
+          producao_count: increment(1),
+          ultima_producao_em: novaProducao.criada_em,
+        }),
+      )
+      .catch(error => {
+        console.error('Erro ao adicionar producao:', error);
+        setMensagemSync('Nao foi possivel sincronizar a producao.');
+      });
   };
 
-  // Adicionar novaProducao ao paciente no Firebase
-  const pacienteRef = doc(db, "pacientes", pacienteAtual.id);
-  await updateDoc(pacienteRef, {
-    producao: arrayUnion(novaProducao)
-  });
-}
+  const editarProducao = producao => {
+    setProducaoAtual(producao);
+    setModoEdicaoProducao(true);
+    setNomeCondutaSelecionada(producao.conduta?.nome || '');
+  };
 
-  handleCloseProducaoModal();
-};
+  const handleShowModal = () => {
+    setPacienteAtual(null);
+    setModoEdicao(false);
+    setShowModal(true);
+  };
 
-const editarProducao = (producao, index) => {
-  // Define a produção atual para edição
-  setProducaoAtual(producao);
-  setModoEdicaoProducao(true);
-  setIndiceProducaoAtual(index);
-  setNomeCondutaSelecionada(producao.conduta.nome);
-  // Abre um formulário de edição ou modifica o estado para mostrar o formulário de edição
-  // ...
-};
-
-// ABRIR E FECHAR MODAL
-  const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
     setModoEdicao(false);
-  }
+    setPacienteAtual(null);
+  };
 
-  const abrirModalEdicao = (paciente) => {
+  const abrirModalEdicao = paciente => {
     setPacienteAtual(paciente);
     setModoEdicao(true);
     setShowModal(true);
   };
 
   const handleCloseEvolucaoModal = () => {
-    
     setShowEvolucaoModal(false);
-    //setPacienteAtual(null)
+    setTextoEvolucao('');
   };
 
-  const abrirModalEvolucao = (paciente) => {
+  const abrirModalEvolucao = paciente => {
     setPacienteAtual(paciente);
     setShowEvolucaoModal(true);
-  
-    // Assumindo que 'paciente' já inclui as evoluções
-    // Não é necessário buscar as evoluções separadamente
-    setEvolucoes(paciente.evolucao || []);
-    //setPacienteAtual(paciente)
   };
 
-  const abrirModalProducao = (paciente) => {
+  const abrirModalProducao = paciente => {
     setPacienteAtual(paciente);
     setShowProducaoModal(true);
+    setModoEdicaoProducao(false);
+    setProducaoAtual(null);
+    setNomeCondutaSelecionada('');
   };
-  
+
   const handleCloseProducaoModal = () => {
     setShowProducaoModal(false);
     setModoEdicaoProducao(false);
+    setProducaoAtual(null);
+    setNomeCondutaSelecionada('');
   };
-  
 
   return (
-    <Container>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'start', marginBottom: '1em' }}>
-        <h1 style={{ marginRight: '1em' }}>Pacientes</h1>
-        <Button 
-            variant="success" 
-            style={{ 
-              borderRadius: '50%', 
-              width: '2.5em',   // Largura do botão
-              height: '2.5em',  // Altura do botão
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center'
-            }} 
-            onClick={handleShowModal}>
-          <FaPlus size="1.5em" />
-        </Button>
-      </div>
-      <div style={{ marginBottom: '20px' }}>
-        <Form.Check 
-          type="checkbox" 
-          label="Pacientes com alta" 
-          checked={mostrarAlta}
-          onChange={(e) => {
-            setMostrarAlta(e.target.checked);
-          }}
-        />
-      </div>
-      <ModalPaciente 
-          showModal={showModal} 
-          handleCloseModal={handleCloseModal} 
-          handleSubmit={handleSubmit} 
-          modoEdicao={modoEdicao} 
-          pacienteAtual={pacienteAtual} 
+    <div className="page-shell">
+      <Container className="container-app">
+        <section className="hero-card">
+          <div className="hero-copy">
+            <span className="eyebrow">Central de pacientes</span>
+            <h1>Monitoramento rapido para a rotina nefrologica.</h1>
+            <p>
+              Consulte pacientes, atualize evolucoes e lance producao em uma interface enxuta, legivel e pensada
+              primeiro para o celular.
+            </p>
+          </div>
+          <button type="button" className="button button-primary hero-action" onClick={handleShowModal}>
+            <FaPlus />
+            <span>Novo paciente</span>
+          </button>
+        </section>
+
+        <section className="stats-grid">
+          <article className="metric-card">
+            <span>Pacientes visiveis</span>
+            <strong>{pacientesVisiveis.length}</strong>
+            <small>{mostrarAlta ? 'Filtro de alta ativo' : 'Pacientes em acompanhamento'}</small>
+          </article>
+          <article className="metric-card">
+            <span>Hospitais</span>
+            <strong>{Object.keys(pacientesFiltrados).length}</strong>
+            <small>{todosPacientes.length} registros na base atual</small>
+          </article>
+          <article className="metric-card">
+            <span>Com evolucao</span>
+            <strong>{totalEvolucoes}</strong>
+            <small>Prontuarios com anotacoes clinicas</small>
+          </article>
+          <article className="metric-card">
+            <span>Com producao</span>
+            <strong>{totalProducoes}</strong>
+            <small>Pacientes com historico de procedimentos</small>
+          </article>
+        </section>
+
+        <section className="panel-card">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">Filtros</span>
+              <h2>Encontre o paciente certo mais rapido</h2>
+              <p>{dadosAuxiliaresEmCache ? 'Modo offline ativo. Os dados serao sincronizados quando a rede voltar.' : 'Dados sincronizados com o Firebase.'}</p>
+            </div>
+          </div>
+
+          {mensagemSync && <div className="form-alert">{mensagemSync}</div>}
+
+          <div className="toolbar-grid">
+            <label className="field">
+              <span>Buscar paciente</span>
+              <input
+                type="search"
+                placeholder="Nome, registro, setor, convenio ou hospital"
+                value={busca}
+                onChange={event => setBusca(event.target.value)}
+              />
+            </label>
+
+            <div className="toggle-card">
+              <div>
+                <strong>Mostrar pacientes com alta</strong>
+                <small>Alterne entre pacientes ativos e altas registradas.</small>
+              </div>
+              <Form.Check
+                type="switch"
+                id="mostrar-alta"
+                checked={mostrarAlta}
+                onChange={event => setMostrarAlta(event.target.checked)}
+              />
+            </div>
+          </div>
+        </section>
+
+        <ModalPaciente
+          showModal={showModal}
+          handleCloseModal={handleCloseModal}
+          handleSubmit={handleSubmit}
+          modoEdicao={modoEdicao}
+          pacienteAtual={pacienteAtual}
           hospitais={hospitais}
-          convenios={convenios}/>
-      <ModalEvolucao 
+          convenios={convenios}
+        />
+        <ModalEvolucao
           showEvolucaoModal={showEvolucaoModal}
           handleCloseEvolucaoModal={handleCloseEvolucaoModal}
           evolucoes={evolucoes}
           adicionarEvolucao={adicionarEvolucao}
-          setTextoEvolucao={setTextoEvolucao}/>
-      <ModalProducao 
-          showProducaoModal={showProducaoModal} 
-          handleCloseProducaoModal={handleCloseProducaoModal} 
+          setTextoEvolucao={setTextoEvolucao}
+          textoEvolucao={textoEvolucao}
+          pacienteAtual={pacienteAtual}
+        />
+        <ModalProducao
+          showProducaoModal={showProducaoModal}
+          handleCloseProducaoModal={handleCloseProducaoModal}
           handleSubmitProducao={handleSubmitProducao}
           editarProducao={editarProducao}
           pacienteAtual={pacienteAtual}
-          acessos={acessos} 
-          condutas={condutas} 
-          producoes={producoes}
+          acessos={acessos}
+          condutas={condutas}
+          producoes={producoesCatalogo}
+          historicoProducoes={historicoProducoes}
           currentUser={currentUser}
           modoEdicaoProducao={modoEdicaoProducao}
           producaoAtual={producaoAtual}
           setNomeCondutaSelecionada={setNomeCondutaSelecionada}
-          nomeCondutaSelecionada={nomeCondutaSelecionada}/>
-      <ListaPacientes 
-          pacientes={pacientes} 
-          abrirModalEdicao={abrirModalEdicao} 
+          nomeCondutaSelecionada={nomeCondutaSelecionada}
+        />
+
+        <ListaPacientes
+          pacientes={pacientesFiltrados}
+          abrirModalEdicao={abrirModalEdicao}
           abrirModalProducao={abrirModalProducao}
-          abrirModalEvolucao={abrirModalEvolucao}/>
-          
-    {/*
-      <Row xs={1} md={3} className="g-4">
-        {pacientes.map(paciente => (
-          <Col key={paciente.id}>
-            <Card>
-              <Card.Body>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Card.Title>{paciente.nome}</Card.Title>
-                <Button variant="outline-warning" 
-                size="sm"
-                onClick={() => abrirModalEdicao(paciente)}>
-                  <FaPencilAlt /> Editar
-                  </Button>
-              </div>
-                <Card.Text>
-                  <strong>Setor:</strong> {paciente.setor}<br />
-                  <strong>Idade:</strong> {paciente.idade}<br />
-                  <strong>Registro:</strong> {paciente.registro}<br />
-                  <strong>Diagnóstico:</strong> {paciente.diagnostico?.join(", ")}<br />
-                  <strong>Evolução:</strong> {paciente.evolucao && paciente.evolucao.length > 0
-                            ? paciente.evolucao[paciente.evolucao.length - 1].texto.substring(0, 15) + '...'
-                            : 'Sem evoluções'}<br />
-                  <strong>Alta:</strong> {paciente.alta ? "Sim" : "Não"}<br />
-                  <strong>Convênio:</strong> {paciente.convenio}<br />
-                  <strong>Hospital:</strong> {paciente.hospital}
-                  
-              </Card.Text>
-              <div style={{ textAlign: 'right' }}>
-              <Button variant="primary" size="sm" onClick={() => abrirModalEvolucao(paciente)}>Evoluções</Button>
-            </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-      */}
-      
-    </Container>
+          abrirModalEvolucao={abrirModalEvolucao}
+          busca={busca}
+        />
+      </Container>
+    </div>
   );
 };
 
