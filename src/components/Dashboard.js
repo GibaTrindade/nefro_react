@@ -143,12 +143,12 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
     };
 
     handleCloseModal();
-    setMensagemSync('Alteracao salva localmente. O app sincroniza assim que a rede voltar.');
+    setMensagemSync('Alteração salva localmente. O app sincroniza assim que a rede voltar.');
 
     if (modoEdicao && pacienteAtual) {
       updateDoc(doc(db, 'pacientes', pacienteAtual.id), payload).catch(error => {
         console.error('Erro ao atualizar paciente:', error);
-        setMensagemSync('Nao foi possivel sincronizar a alteracao do paciente.');
+        setMensagemSync('Não foi possível sincronizar a alteração do paciente.');
       });
     } else {
       addDoc(collection(db, 'pacientes'), {
@@ -158,7 +158,7 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
         producao_count: 0,
       }).catch(error => {
         console.error('Erro ao adicionar paciente:', error);
-        setMensagemSync('Nao foi possivel sincronizar o cadastro do paciente.');
+        setMensagemSync('Não foi possível sincronizar o cadastro do paciente.');
       });
     }
   };
@@ -176,7 +176,7 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
 
     setTextoEvolucao('');
     handleCloseEvolucaoModal();
-    setMensagemSync('Evolucao salva localmente. A sincronizacao sera retomada quando houver rede.');
+    setMensagemSync('Evolução salva localmente. A sincronização será retomada quando houver rede.');
 
     addDoc(collection(db, 'pacientes', pacienteAtual.id, 'evolucoes'), {
       texto: textoAtual,
@@ -192,8 +192,8 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
         }),
       )
       .catch(error => {
-        console.error('Erro ao salvar evolucao:', error);
-        setMensagemSync('Nao foi possivel sincronizar a evolucao.');
+        console.error('Erro ao salvar evolução:', error);
+        setMensagemSync('Não foi possível sincronizar a evolução.');
       });
   };
 
@@ -216,12 +216,12 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
     };
 
     handleCloseProducaoModal();
-    setMensagemSync('Producao salva localmente. O app envia a sincronizacao quando a conexao voltar.');
+    setMensagemSync('Produção salva localmente. O app envia a sincronização quando a conexão voltar.');
 
     if (modoEdicaoProducao && producaoAtual?.id) {
       updateDoc(doc(db, 'pacientes', pacienteAtual.id, 'producoes', producaoAtual.id), novaProducao).catch(error => {
-        console.error('Erro ao editar producao:', error);
-        setMensagemSync('Nao foi possivel sincronizar a edicao da producao.');
+        console.error('Erro ao editar produção:', error);
+        setMensagemSync('Não foi possível sincronizar a edição da produção.');
       });
       return;
     }
@@ -234,8 +234,8 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
         }),
       )
       .catch(error => {
-        console.error('Erro ao adicionar producao:', error);
-        setMensagemSync('Nao foi possivel sincronizar a producao.');
+        console.error('Erro ao adicionar produção:', error);
+        setMensagemSync('Não foi possível sincronizar a produção.');
       });
   };
 
@@ -294,9 +294,9 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
         <section className="hero-card">
           <div className="hero-copy">
             <span className="eyebrow">Central de pacientes</span>
-            <h1>Monitoramento rapido para a rotina nefrologica.</h1>
+            <h1>Passagem de plantão - Nefrologia</h1>
             <p>
-              Consulte pacientes, atualize evolucoes e lance producao em uma interface enxuta, legivel e pensada
+              Consulte pacientes, atualize evoluções e lance produção em uma interface enxuta, legível e pensada
               primeiro para o celular.
             </p>
           </div>
@@ -308,7 +308,7 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
 
         <section className="stats-grid">
           <article className="metric-card">
-            <span>Pacientes visiveis</span>
+            <span>Pacientes visíveis</span>
             <strong>{pacientesVisiveis.length}</strong>
             <small>{mostrarAlta ? 'Filtro de alta ativo' : 'Pacientes em acompanhamento'}</small>
           </article>
@@ -318,14 +318,14 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
             <small>{todosPacientes.length} registros na base atual</small>
           </article>
           <article className="metric-card">
-            <span>Com evolucao</span>
+            <span>Com evolução</span>
             <strong>{totalEvolucoes}</strong>
-            <small>Prontuarios com anotacoes clinicas</small>
+            <small>Prontuários com anotações clínicas</small>
           </article>
           <article className="metric-card">
-            <span>Com producao</span>
+            <span>Com produção</span>
             <strong>{totalProducoes}</strong>
-            <small>Pacientes com historico de procedimentos</small>
+            <small>Pacientes com histórico de procedimentos</small>
           </article>
         </section>
 
@@ -333,8 +333,8 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
           <div className="panel-header">
             <div>
               <span className="eyebrow">Filtros</span>
-              <h2>Encontre o paciente certo mais rapido</h2>
-              <p>{dadosAuxiliaresEmCache ? 'Modo offline ativo. Os dados serao sincronizados quando a rede voltar.' : 'Dados sincronizados com o Firebase.'}</p>
+              <h2>Encontre o paciente certo mais rápido</h2>
+              <p>{dadosAuxiliaresEmCache ? 'Modo offline ativo. Os dados serão sincronizados quando a rede voltar.' : 'Dados sincronizados com o Firebase.'}</p>
             </div>
           </div>
 
@@ -345,7 +345,7 @@ const Dashboard = ({ pacientes, mostrarAlta, setMostrarAlta }) => {
               <span>Buscar paciente</span>
               <input
                 type="search"
-                placeholder="Nome, registro, setor, convenio ou hospital"
+                placeholder="Nome, registro, setor, convênio ou hospital"
                 value={busca}
                 onChange={event => setBusca(event.target.value)}
               />

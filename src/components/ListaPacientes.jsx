@@ -7,7 +7,7 @@ const getLastEvolution = paciente => {
   }
 
   const evolucoes = paciente.evolucao || [];
-  return evolucoes.length ? evolucoes[evolucoes.length - 1].texto : 'Sem evolucoes registradas.';
+  return evolucoes.length ? evolucoes[evolucoes.length - 1].texto : 'Sem evoluções registradas.';
 };
 
 export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao, abrirModalEvolucao, busca }) => {
@@ -20,7 +20,7 @@ export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao
         <p>
           {busca
             ? 'Tente ajustar a busca ou limpar os filtros para ver outros pacientes.'
-            : 'Quando novos pacientes entrarem na base, eles aparecerao aqui.'}
+            : 'Quando novos pacientes entrarem na base, eles aparecerão aqui.'}
         </p>
       </section>
     );
@@ -31,7 +31,7 @@ export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao
       <div className="section-heading">
         <span className="eyebrow">Pacientes</span>
         <h2>Lista organizada por hospital</h2>
-        <p>Abra um hospital para ver os cards resumidos e agir rapido em cada paciente.</p>
+        <p>Abra um hospital para ver os cards resumidos e agir rápido em cada paciente.</p>
       </div>
 
       <Accordion alwaysOpen className="hospital-accordion">
@@ -51,7 +51,7 @@ export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao
                       <div>
                         <h3>{paciente.nome}</h3>
                         <p>
-                          {paciente.setor || 'Setor nao informado'} - Registro {paciente.registro || 'sem registro'}
+                          {paciente.setor || 'Setor não informado'} - Registro {paciente.registro || 'sem registro'}
                         </p>
                       </div>
                       <button
@@ -68,17 +68,17 @@ export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao
                       <span className={`soft-badge ${paciente.alta ? 'soft-badge--warning' : 'soft-badge--success'}`}>
                         {paciente.alta ? 'Alta' : 'Ativo'}
                       </span>
-                      <span className="soft-badge">{paciente.convenio || 'Sem convenio'}</span>
-                      <span className="soft-badge">{paciente.idade ? `${paciente.idade} anos` : 'Idade nao informada'}</span>
+                      <span className="soft-badge">{paciente.convenio || 'Sem convênio'}</span>
+                      <span className="soft-badge">{paciente.idade ? `${paciente.idade} anos` : 'Idade não informada'}</span>
                     </div>
 
                     <dl className="patient-details">
                       <div>
-                        <dt>Diagnostico</dt>
-                        <dd>{paciente.diagnostico?.join(', ') || 'Nao informado'}</dd>
+                        <dt>Diagnóstico</dt>
+                        <dd>{paciente.diagnostico?.join(', ') || 'Não informado'}</dd>
                       </div>
                       <div>
-                        <dt>Ultima evolucao</dt>
+                        <dt>Última evolução</dt>
                         <dd>{getLastEvolution(paciente)}</dd>
                       </div>
                     </dl>
@@ -86,11 +86,11 @@ export const ListaPacientes = ({ pacientes, abrirModalEdicao, abrirModalProducao
                     <div className="patient-actions">
                       <button type="button" className="button button-secondary button-block" onClick={() => abrirModalProducao(paciente)}>
                         <FaFileMedical />
-                        <span>Producoes</span>
+                        <span>Produções</span>
                       </button>
                       <button type="button" className="button button-ghost button-block" onClick={() => abrirModalEvolucao(paciente)}>
                         <FaNotesMedical />
-                        <span>Evolucoes</span>
+                        <span>Evoluções</span>
                       </button>
                     </div>
                   </article>

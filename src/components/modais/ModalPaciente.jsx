@@ -34,9 +34,9 @@ export const ModalPaciente = ({ showModal, handleCloseModal, handleSubmit, modoE
             </Form.Group>
 
             <Form.Group className="field">
-              <Form.Label>Convenio</Form.Label>
+              <Form.Label>Convênio</Form.Label>
               <Form.Select name="convenio" defaultValue={modoEdicao ? pacienteAtual?.convenio : ''} required>
-                <option value="">Selecione um convenio</option>
+                <option value="">Selecione um convênio</option>
                 {[...convenios].sort((a, b) => a.nome.localeCompare(b.nome)).map(convenio => (
                   <option key={convenio.id} value={convenio.nome}>
                     {convenio.nome}
@@ -58,7 +58,7 @@ export const ModalPaciente = ({ showModal, handleCloseModal, handleSubmit, modoE
             </Form.Group>
 
             <Form.Group className="field field-span-2">
-              <Form.Label>Diagnostico</Form.Label>
+              <Form.Label>Diagnóstico</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -79,7 +79,7 @@ export const ModalPaciente = ({ showModal, handleCloseModal, handleSubmit, modoE
             Cancelar
           </Button>
           <Button variant="primary" type="submit">
-            {modoEdicao ? 'Salvar alteracoes' : 'Cadastrar paciente'}
+            {modoEdicao ? 'Salvar alterações' : 'Cadastrar paciente'}
           </Button>
         </Modal.Footer>
       </Form>

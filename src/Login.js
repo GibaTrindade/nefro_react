@@ -21,7 +21,7 @@ const Login = () => {
         await signInWithEmailAndPassword(auth, email.value, password.value);
         navigate('/');
       } catch (error) {
-        setErrorMessage('Nao foi possivel entrar. Confira email e senha.');
+        setErrorMessage('Não foi possível entrar. Confira e-mail e senha.');
       } finally {
         setIsSubmitting(false);
       }
@@ -40,14 +40,14 @@ const Login = () => {
       <div className="login-panel">
         <section className="login-hero">
           <span className="eyebrow">Mobile first</span>
-          <h1>Painel nefrologico mais rapido e mais claro.</h1>
+          <h1>Passagem de plantão sem dor.</h1>
           <p>
-            Organize pacientes, evolucoes e producao em uma interface pensada para funcionar primeiro no celular.
+            Organize pacientes, evoluções e produção em uma interface pensada para funcionar primeiro no celular.
           </p>
           <div className="hero-points">
             <span>Fluxo objetivo</span>
-            <span>Leitura clinica rapida</span>
-            <span>Atualizacao em tempo real</span>
+            <span>Leitura clínica rápida</span>
+            <span>Atualização em tempo real</span>
           </div>
         </section>
 

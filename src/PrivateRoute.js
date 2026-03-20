@@ -12,7 +12,7 @@ const PrivateRoute = ({ children }) => {
         <div className="container-app">
           <div className="state-card">
             <div className="loading-dot" />
-            <p>Carregando sessao...</p>
+            <p>Carregando sessão...</p>
           </div>
         </div>
       </div>

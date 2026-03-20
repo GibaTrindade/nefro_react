@@ -15,13 +15,13 @@ const parseDateSafely = data => {
 
 const formatarData = data => {
   if (!data) {
-    return 'Data nao informada';
+    return 'Data não informada';
   }
 
   const parsedDate = parseDateSafely(data);
 
   if (!parsedDate || Number.isNaN(parsedDate.getTime())) {
-    return 'Data invalida';
+    return 'Data inválida';
   }
 
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(parsedDate);
@@ -61,7 +61,7 @@ export const ModalProducao = ({
   return (
     <Modal show={showProducaoModal} onHide={handleCloseProducaoModal} size="lg" centered dialogClassName="app-modal">
       <Modal.Header closeButton>
-        <Modal.Title>{modoEdicaoProducao ? 'Editar producao' : `Producoes de ${pacienteAtual?.nome || 'paciente'}`}</Modal.Title>
+        <Modal.Title>{modoEdicaoProducao ? 'Editar produção' : `Produções de ${pacienteAtual?.nome || 'paciente'}`}</Modal.Title>
       </Modal.Header>
       <Modal.Body className="modal-body-scroll">
         <Form key={modoEdicaoProducao ? producaoAtual?.id || 'editando' : 'novo'} onSubmit={handleSubmitProducao}>
@@ -102,9 +102,9 @@ export const ModalProducao = ({
             </Form.Group>
 
             <Form.Group className="field">
-              <Form.Label>Producao</Form.Label>
+              <Form.Label>Produção</Form.Label>
               <Form.Select name="nomeProducao" defaultValue={producaoAtual?.producao?.nome || ''} required>
-                <option value="">Selecione uma producao</option>
+                <option value="">Selecione uma produção</option>
                 {producoes.map(producao => (
                   <option key={producao.id} value={producao.nome}>
                     {producao.nome}
@@ -114,7 +114,7 @@ export const ModalProducao = ({
             </Form.Group>
 
             <Form.Group className="field">
-              <Form.Label>Data da producao</Form.Label>
+              <Form.Label>Data da produção</Form.Label>
               <Form.Control type="date" name="dataProducao" defaultValue={producaoAtual?.criada_em || ''} required />
             </Form.Group>
 
@@ -128,7 +128,7 @@ export const ModalProducao = ({
               Fechar
             </Button>
             <Button variant={modoEdicaoProducao ? 'warning' : 'primary'} type="submit">
-              {modoEdicaoProducao ? 'Salvar edicao' : 'Adicionar producao'}
+              {modoEdicaoProducao ? 'Salvar edição' : 'Adicionar produção'}
             </Button>
           </div>
         </Form>
@@ -136,8 +136,8 @@ export const ModalProducao = ({
         {!modoEdicaoProducao && (
           <>
             <div className="section-heading section-heading--spaced">
-              <span className="eyebrow">Historico</span>
-              <h3>Ultimas producoes registradas</h3>
+              <span className="eyebrow">Histórico</span>
+              <h3>Últimas produções registradas</h3>
             </div>
 
             <div className="timeline-list">
@@ -145,20 +145,20 @@ export const ModalProducao = ({
                 historicoProducoes.map((item, index) => (
                   <article key={`${item.criada_em || 'producao'}-${index}`} className="timeline-item">
                     <div className="timeline-item__meta">
-                      <strong>{item.producao?.nome || 'Producao sem nome'}</strong>
+                      <strong>{item.producao?.nome || 'Produção sem nome'}</strong>
                       <span>{formatarData(item.criada_em)}</span>
                     </div>
                     <p>
-                      <strong>Conduta:</strong> {item.conduta?.nome || 'Nao informada'}
+                      <strong>Conduta:</strong> {item.conduta?.nome || 'Não informada'}
                     </p>
                     <p>
-                      <strong>Acesso:</strong> {item.acesso?.nome || 'Nao informado'}
+                      <strong>Acesso:</strong> {item.acesso?.nome || 'Não informado'}
                       {item.acesso?.data ? ` em ${formatarData(item.acesso.data)}` : ''}
                     </p>
                     <p>
-                      <strong>Cateter:</strong> {item.usou_cateter ? 'Sim' : 'Nao'}
+                      <strong>Cateter:</strong> {item.usou_cateter ? 'Sim' : 'Não'}
                     </p>
-                    <p className="timeline-author">{item.user || 'Usuario nao identificado'}</p>
+                    <p className="timeline-author">{item.user || 'Usuário não identificado'}</p>
                     {item.user === currentUser?.email && (
                       <Button variant="outline-warning" size="sm" onClick={() => editarProducao(item)}>
                         Editar
@@ -168,7 +168,7 @@ export const ModalProducao = ({
                 ))
               ) : (
                 <div className="state-card state-card--compact">
-                  <p>Nenhuma producao registrada para este paciente.</p>
+                  <p>Nenhuma produção registrada para este paciente.</p>
                 </div>
               )}
             </div>

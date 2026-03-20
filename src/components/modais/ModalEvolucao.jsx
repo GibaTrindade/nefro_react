@@ -23,7 +23,7 @@ export const ModalEvolucao = ({
   return (
     <Modal show={showEvolucaoModal} onHide={handleCloseEvolucaoModal} size="lg" centered dialogClassName="app-modal">
       <Modal.Header closeButton>
-        <Modal.Title>Evolucoes de {pacienteAtual?.nome || 'paciente'}</Modal.Title>
+        <Modal.Title>Evoluções de {pacienteAtual?.nome || 'paciente'}</Modal.Title>
       </Modal.Header>
       <Modal.Body className="modal-body-scroll">
         <div className="timeline-list">
@@ -39,18 +39,18 @@ export const ModalEvolucao = ({
             ))
           ) : (
             <div className="state-card state-card--compact">
-              <p>Nenhuma evolucao registrada ate o momento.</p>
+              <p>Nenhuma evolução registrada até o momento.</p>
             </div>
           )}
         </div>
 
         <Form onSubmit={adicionarEvolucao}>
           <Form.Group className="field">
-            <Form.Label>Nova evolucao</Form.Label>
+            <Form.Label>Nova evolução</Form.Label>
             <Form.Control
               as="textarea"
               rows={4}
-              placeholder="Descreva a evolucao clinica de forma objetiva"
+              placeholder="Descreva a evolução clínica de forma objetiva"
               value={textoEvolucao}
               onChange={event => setTextoEvolucao(event.target.value)}
               required
@@ -61,7 +61,7 @@ export const ModalEvolucao = ({
               Fechar
             </Button>
             <Button variant="success" type="submit">
-              Salvar evolucao
+              Salvar evolução
             </Button>
           </div>
         </Form>

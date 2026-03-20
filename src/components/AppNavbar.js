@@ -32,7 +32,7 @@ const AppNavbar = () => {
           <span className="brand-mark">NR</span>
           <span>
             <strong>Nefro React</strong>
-            <small>Controle clinico e producao</small>
+            <small>Controle clínico e produção</small>
           </span>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="app-navbar-nav" className="navbar-toggle-custom" />
@@ -42,7 +42,7 @@ const AppNavbar = () => {
               Pacientes
             </Nav.Link>
             <Nav.Link as={Link} to="/producao" active={location.pathname === '/producao'}>
-              Producao
+              Produção
             </Nav.Link>
           </Nav>
           {currentUser && (

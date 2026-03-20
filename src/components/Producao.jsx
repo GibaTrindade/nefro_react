@@ -133,18 +133,18 @@ function Producao() {
       <div className="container-app">
         <section className="hero-card hero-card--compact">
           <div className="hero-copy">
-            <span className="eyebrow">Producao</span>
-            <h1>Resumo mensal com leitura rapida.</h1>
-            <p>Comece pelos indicadores principais e desca para o detalhe diario so quando precisar.</p>
-            <p>{dadosEmCache ? 'Modo offline ativo. Os totais serao confirmados quando a rede voltar.' : 'Dados sincronizados com as subcolecoes de producao.'}</p>
+            <span className="eyebrow">Produção</span>
+            <h1>Resumo mensal com leitura rápida.</h1>
+            <p>Comece pelos indicadores principais e desça para o detalhe diário só quando precisar.</p>
+            <p>{dadosEmCache ? 'Modo offline ativo. Os totais serão confirmados quando a rede voltar.' : 'Dados sincronizados com as subcoleções de produção.'}</p>
           </div>
 
           <label className="field month-filter">
-            <span>Mes</span>
+            <span>Mês</span>
             <select id="monthSelect" value={selectedMonth} onChange={event => setSelectedMonth(event.target.value)}>
               <option value="1">Janeiro</option>
               <option value="2">Fevereiro</option>
-              <option value="3">Marco</option>
+              <option value="3">Março</option>
               <option value="4">Abril</option>
               <option value="5">Maio</option>
               <option value="6">Junho</option>
@@ -162,7 +162,7 @@ function Producao() {
           <article className="metric-card metric-card--highlight">
             <span>Total estimado</span>
             <strong>{currencyFormatter.format(totalMensal)}</strong>
-            <small>Faturamento calculado para o mes selecionado</small>
+            <small>Faturamento calculado para o mês selecionado</small>
           </article>
           <article className="metric-card">
             <span>Parecer / Visita</span>
@@ -170,9 +170,9 @@ function Producao() {
             <small>Atendimentos sem procedimento</small>
           </article>
           <article className="metric-card">
-            <span>Hemodialise</span>
+            <span>Hemodiálise</span>
             <strong>{resumo.hemodialise}</strong>
-            <small>Sessoes registradas</small>
+            <small>Sessões registradas</small>
           </article>
           <article className="metric-card">
             <span>HDC + Cateter</span>
@@ -184,7 +184,7 @@ function Producao() {
         <section className="panel-grid">
           <article className="panel-card">
             <div className="section-heading">
-              <span className="eyebrow">Picos do mes</span>
+              <span className="eyebrow">Picos do mês</span>
               <h2>Dias com maior valor</h2>
             </div>
 
@@ -204,7 +204,7 @@ function Producao() {
               </div>
             ) : (
               <div className="state-card state-card--compact">
-                <p>Nao ha producoes registradas neste mes.</p>
+                <p>Não há produções registradas neste mês.</p>
               </div>
             )}
           </article>
@@ -226,7 +226,7 @@ function Producao() {
               </div>
               <div>
                 <strong>{daysOfMonth.length}</strong>
-                <span>Dias no mes</span>
+                <span>Dias no mês</span>
               </div>
             </div>
           </article>
@@ -234,8 +234,8 @@ function Producao() {
 
         <section className="panel-card">
           <div className="section-heading">
-            <span className="eyebrow">Detalhe diario</span>
-            <h2>Tabela de producao</h2>
+            <span className="eyebrow">Detalhe diário</span>
+            <h2>Tabela de produção</h2>
           </div>
 
           <div className="table-card">
@@ -245,7 +245,7 @@ function Producao() {
                   <tr>
                     <th>Dia</th>
                     <th>Parecer / Visita</th>
-                    <th>Hemodialise</th>
+                    <th>Hemodiálise</th>
                     <th>HDC</th>
                     <th>Cateter</th>
                     <th>Valor</th>
